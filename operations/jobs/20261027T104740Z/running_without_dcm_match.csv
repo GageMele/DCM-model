@@ -1,0 +1,2 @@
+job_id,job_name,state,partition,user,elapsed,time_limit,start_time,cpus,minimum_memory,nodes,node_list,reason
+53515610,C_D1_202202_run,RUNNING,batch,meleg,7:26:55,1-00:00:00,2026-10-27T06:20:45,96,64G,1,cn504-05,cn504-05

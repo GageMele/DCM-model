@@ -49,7 +49,7 @@ BLAS/OpenMP helper environment variables OMP_NUM_THREADS, OPENBLAS_NUM_THREADS, 
 
 ## Job inventory and read-only monitoring
 
-See [CURRENT_JOBS.md](CURRENT_JOBS.md) for the successful user-reported October 27 capture: 20 RUNNING jobs and 335 total entries at 10:47 UTC / 13:47 Saudi time, across the entire meleg account. The archive with individual jobs is awaiting transfer. Direct SSH from the authoring workspace was blocked earlier; the October 25 archived classifications remain historical.
+See [CURRENT_JOBS.md](CURRENT_JOBS.md) for the verified October 27 capture at 10:47 UTC / 13:47 Saudi time: 19 running DCM fits using 304 CPUs, one other running job, and 315 pending entries without DCM manifest matches. All 335 entries and full model settings are preserved. No DCM controller or check appears in that snapshot; inspect current accounting and the controller ledger before assuming dispatch continues. Direct SSH from the authoring workspace was blocked earlier; this evidence comes from the user's uploaded capture, and the October 25 scientific classifications remain historical.
 
 ~~~bash
 cd /ibex/user/meleg/DCM_MODEL
@@ -62,6 +62,34 @@ squeue -u meleg -o "%.18i %.45j %.10T %.12M %.6C %R"
 sacct -X -j 54250664,54250665 \
   --format=JobID,JobName%45,State,Elapsed,ExitCode
 ~~~
+
+To inspect all registered controller jobs, including successors, run this read-only query on Ibex after setting `experiment` above:
+
+```bash
+python3 - "$experiment" <<'PY'
+import json, pathlib, subprocess, sys
+directory = pathlib.Path(sys.argv[1]) / "scheduler"
+records = []
+for path in sorted(directory.glob("controller_*.json")):
+    if path.name.endswith((".intent.json", ".rejected.json")):
+        continue
+    record = json.loads(path.read_text())
+    if str(record.get("job_id", "")).isdigit():
+        records.append(record)
+for record in records:
+    print(json.dumps(record, sort_keys=True), flush=True)
+ids = sorted({str(record["job_id"]) for record in records})
+if ids:
+    subprocess.run([
+        "sacct", "-X", "--starttime=2026-10-22", "--jobs=" + ",".join(ids),
+        "--format=JobID,JobName%60,State,Elapsed,ExitCode"
+    ], check=True)
+else:
+    print("No accepted controller IDs found; inspect the ledger and submission records.")
+PY
+```
+
+The start date above belongs to the frozen October 22 shape campaign. The command reads accepted controller records and accounting; it does not submit a replacement. Follow the existing resume procedure only after confirming the actual state and any failure cause.
 
 The scheduler status command prints its last saved dispatch_status.json. Check its UTC timestamp; it is not itself a fresh scheduler pass. squeue gives live queue state, sacct includes recorded completed jobs. The two IDs above are historical preparation/initial-controller IDs; use the current ledger for successors.
 

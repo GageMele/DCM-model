@@ -1,0 +1,20 @@
+{
+  "query_started_utc": "2026-10-27T10:47:38.260894+00:00",
+  "query_finished_utc": "2026-10-27T10:47:40.353886+00:00",
+  "user": "meleg",
+  "command": [
+    "squeue",
+    "--array",
+    "--user",
+    "meleg",
+    "--states=all",
+    "--noheader",
+    "--format",
+    "%i|%j|%T|%P|%u|%M|%l|%S|%C|%m|%D|%N|%R"
+  ],
+  "queued_rows": 335,
+  "running_rows": 20,
+  "project_root": "/ibex/user/meleg/DCM_MODEL",
+  "scope": "All visible current queue states for this user; array tasks expanded. Not cluster-wide jobs for other users. Snapshot may change after capture.",
+  "mutations": "Only local snapshot files written; no Slurm submissions, cancellations or updates."
+}

@@ -1,0 +1,50 @@
+{
+  "source": "User-provided Ibex queue capture archive",
+  "archive_filename": "ibex_jobs_20261027T104740Z_1793098060392524450.tar.gz",
+  "archive_bytes": 10014,
+  "archive_sha256": "d49aae3377f68af41d2fa664872ca1c4061a570a6c7d2ec46aa05cbdc010ddcc",
+  "original_archive_root": "ibex_jobs_20261027T104740Z_1793098060392524450",
+  "reported_remote_path": "/ibex/user/meleg/DCM_MODEL/logs/ibex_jobs_20261027T104740Z_1793098060392524450.tar.gz",
+  "capture_script_repository_path": "scripts/capture_ibex_jobs.py",
+  "capture_script_repository_sha256": "2af337b144134d9b784287cdadc9da80aac1701455cc5152f75080b3ef1fdd5f",
+  "raw_files": {
+    "README.md": {
+      "bytes": 21233,
+      "sha256": "db224802f363e84c8ade0d07264571d3bcd23e0a6e9f4e8e5ec4ca56b60730d1"
+    },
+    "all_queued_jobs.csv": {
+      "bytes": 31825,
+      "sha256": "02f90c15eada8d1469858df2a484f5eacc601f071ed4b51d16e045851406b533"
+    },
+    "dcm_manifest_matches.csv": {
+      "bytes": 7786,
+      "sha256": "2c2f5d1ff76d7f748550501ad43fca1d40e6dabb770e768fc8018fd90bf0b697"
+    },
+    "metadata.json": {
+      "bytes": 667,
+      "sha256": "65770a59b8c08028c28d9d5f8505ea8011462dc6705e2e8706f554f271d58900"
+    },
+    "running_jobs.csv": {
+      "bytes": 2712,
+      "sha256": "e31ec91e0053c2da407088fde3c81ddf06010b829dde02eb1f8115ef249e417a"
+    },
+    "squeue_raw.txt": {
+      "bytes": 31379,
+      "sha256": "6445287389b033155e6a917bc543f2cd446337a67d053b3f266306c585cc0050"
+    }
+  },
+  "case_matrix_repository_path": "evidence/shape_20261025/campaign/cases.tsv",
+  "case_matrix_sha256": "45e38cb5bdf2f4edc2513e7514c1daa66506ce87f3f2fed63b0550feedf8a78d",
+  "case_join": "Captured campaign name + string case_id + exact label; plan_* fields from October 25 frozen matrix.",
+  "raw_preservation": "All six archive file contents retained without byte changes; source tar.gz hash recorded above.",
+  "derived_files": [
+    "classified_queue.csv",
+    "dcm_running_with_settings.csv",
+    "pending_jobs.csv",
+    "running_without_dcm_match.csv",
+    "summary.json",
+    "validation.json"
+  ],
+  "rebuild_source": "build_inventory.py",
+  "mutations": "Local dated evidence only; no SSH, Slurm submission, cancellation, update, model execution or GitHub mutation."
+}

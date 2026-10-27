@@ -32,7 +32,7 @@ The 79 completed cases comprise 67 posterior and 12 prior-only fits. All new 40%
 
 Regional MLD-varying models, especially shape cases 34, 129, and prior sensitivity 249, are promising. Retain no-MLD, half-shift and full-shift controls. Region-specific tensors and unseen-date results remain important unanswered comparisons.
 
-The user’s successful queue capture on **27 October 2026 at 10:47 UTC / 13:47 Saudi time** reports **20 running jobs among 335 queue entries** for the entire `meleg` account. The per-job archive is awaiting transfer, so DCM-specific counts and current job identities are not yet verified. See [CURRENT_JOBS.md](CURRENT_JOBS.md) for the reported metadata, download instructions, and the separate October 25 archived candidates.
+The verified queue archive from **27 October 2026 at 10:47 UTC / 13:47 Saudi time** contains **19 running DCM fits, one other running job, and 315 pending jobs without DCM manifest matches**. The DCM fits use 304 CPUs and all belong to the shape campaign. See [CURRENT_JOBS.md](CURRENT_JOBS.md) for every job, linked model settings, source evidence and the separate October 25 historical registrations. **No DCM controller or check job appears in this snapshot.** Inspect the current controller ledger/accounting and saved dispatch timestamp before expecting further cases to launch. The missing controller is an observation, not a diagnosed failure; the uploaded queue supplies no new scientific results.
 
 ## First working session
 

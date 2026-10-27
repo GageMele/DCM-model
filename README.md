@@ -2,7 +2,7 @@
 
 This repository is the scientific and operational handover for Gage Mele's DCM modelling project at KAUST. It documents the question, original analyses, every recovered test campaign, the available results, and the Ibex system used to run them.
 
-**Handover updated: 27 October 2026. Latest verified scientific result archive: 25 October 2026, 11:15 UTC. Latest user-reported queue capture: 27 October 2026, 10:47 UTC.** Historical job IDs are dated separately. The next tasks are to import the latest job archive and refresh the existing campaign's scientific results.
+**Handover updated: 27 October 2026. Latest verified scientific result archive: 25 October 2026, 11:15 UTC. Latest verified queue capture: 27 October 2026, 10:47 UTC.** The complete job snapshot is now included. The next operational steps are to inspect the controller state and refresh the existing campaign's scientific results.
 
 ## Start here
 
@@ -15,7 +15,7 @@ This repository is the scientific and operational handover for Gage Mele's DCM m
 7. [What we have learned](docs/RESULTS_AND_INTERPRETATION.md): successes, negative results, qualifications, and unresolved questions.
 8. [Evaluation methods](docs/EVALUATION.md): reconstruction, conditional/population predictions, onset, shape, uncertainty, and fair comparisons.
 9. [Ibex operations](docs/IBEX_RUNBOOK.md): paths, environment, monitoring, recovery, and transfer commands.
-10. [Ibex job inventory](docs/CURRENT_JOBS.md): latest reported queue counts, historical job IDs, and capture/transfer instructions.
+10. [Ibex job inventory](docs/CURRENT_JOBS.md): all 20 running account jobs, 19 DCM fits with their settings, all 335 queue entries, and dated historical registrations.
 11. [Known problems and repairs](docs/KNOWN_ISSUES.md), [next decisions](docs/NEXT_STEPS.md), [provenance](docs/PROVENANCE.md), and [glossary](docs/GLOSSARY.md).
 
 ## Project in one page
@@ -36,7 +36,7 @@ The strongest completed 20% candidate for overall conditional profile RMSE allow
 
 The main working configuration is four chains, 1,000 warmup plus 2,000 retained draws per chain, `adapt_delta = 0.97`, and `max_treedepth = 14`, with regional residual SD. This is provisional, not a universal optimum.
 
-The user’s successful Ibex capture on **27 October 2026 at 13:47 Saudi time (10:47 UTC)** reports **20 running jobs and 335 total queue entries** across the `meleg` account. The [job inventory](docs/CURRENT_JOBS.md) records those counts; the archive containing individual job IDs/names is awaiting transfer. Scientific result tables remain dated October 25.
+The verified Ibex archive from **27 October 2026 at 13:47 Saudi time (10:47 UTC)** contains **19 running DCM fits (304 CPUs), one other running job, and 315 pending jobs without DCM manifest matches**. The [job inventory](docs/CURRENT_JOBS.md) includes all 335 entries and every running fit's planned equation/settings. No DCM controller or check appears in this snapshot; inspect the current ledger and accounting before assuming the campaign is still dispatching. Scientific result tables remain dated October 25.
 
 ## Available evidence
 

@@ -1,0 +1,102 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "check": "Original archive SHA256",
+      "passed": true
+    },
+    {
+      "check": "Safe archive directory: ibex_jobs_20261027T104740Z_1793098060392524450",
+      "passed": true
+    },
+    {
+      "check": "Safe regular archive member: ibex_jobs_20261027T104740Z_1793098060392524450/README.md",
+      "passed": true
+    },
+    {
+      "check": "Safe regular archive member: ibex_jobs_20261027T104740Z_1793098060392524450/all_queued_jobs.csv",
+      "passed": true
+    },
+    {
+      "check": "Safe regular archive member: ibex_jobs_20261027T104740Z_1793098060392524450/dcm_manifest_matches.csv",
+      "passed": true
+    },
+    {
+      "check": "Safe regular archive member: ibex_jobs_20261027T104740Z_1793098060392524450/metadata.json",
+      "passed": true
+    },
+    {
+      "check": "Safe regular archive member: ibex_jobs_20261027T104740Z_1793098060392524450/running_jobs.csv",
+      "passed": true
+    },
+    {
+      "check": "Safe regular archive member: ibex_jobs_20261027T104740Z_1793098060392524450/squeue_raw.txt",
+      "passed": true
+    },
+    {
+      "check": "Exactly six expected archive files",
+      "passed": true
+    },
+    {
+      "check": "Metadata equals earlier reported terminal JSON",
+      "passed": true
+    },
+    {
+      "check": "335 unique whole-account job IDs",
+      "passed": true
+    },
+    {
+      "check": "20 RUNNING rows exactly match whole-account RUNNING subset",
+      "passed": true
+    },
+    {
+      "check": "All rows belong to captured account",
+      "passed": true
+    },
+    {
+      "check": "All raw squeue rows have 13 columns",
+      "passed": true
+    },
+    {
+      "check": "Raw squeue exactly equals complete CSV, including order",
+      "passed": true
+    },
+    {
+      "check": "Manifest matches reproduce exact queue fields",
+      "passed": true
+    },
+    {
+      "check": "19 unique DCM matches, one association each",
+      "passed": true
+    },
+    {
+      "check": "Only observed dcm-prefixed jobs are the 19 manifest matches",
+      "passed": true
+    },
+    {
+      "check": "Archived case matrix matches preserved delivered matrix",
+      "passed": true
+    },
+    {
+      "check": "All DCM matches belong to shape fit jobs and exact frozen case labels",
+      "passed": true
+    },
+    {
+      "check": "Recorded fit CPU, memory and walltime agree with frozen plan",
+      "passed": true
+    },
+    {
+      "check": "Exact recorded state totals",
+      "passed": true
+    },
+    {
+      "check": "Exact recorded pending reasons",
+      "passed": true
+    }
+  ],
+  "verified_raw_files": 6,
+  "queue_rows": 335,
+  "running_rows": 20,
+  "dcm_fits_joined": 19,
+  "source_archive_sha256": "d49aae3377f68af41d2fa664872ca1c4061a570a6c7d2ec46aa05cbdc010ddcc"
+}
