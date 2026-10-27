@@ -1,0 +1,13 @@
+{
+  "root": "/ibex/user/meleg/DCM_MODEL",
+  "created_utc": "2026-10-22T10:28:51.607285+00:00",
+  "token": "77caaba437",
+  "package_sha256": "0859014f1537ded5a7298d47e124ff97af5a271bb89b54314fcf51e170c90db6",
+  "partition": "batch",
+  "constraint": "intel&cascadelake",
+  "fit_time": "7-00:00:00",
+  "prior_time": "04:00:00",
+  "prepare_time": "08:00:00",
+  "check_time": "2-00:00:00",
+  "controller_time": "7-00:00:00"
+}

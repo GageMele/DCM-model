@@ -1,0 +1,28 @@
+Validation completed locally on 2026-10-15 with R 4.5.2 and brms 2.23.0.
+
+Passed:
+- Every packaged R source parses.
+- Exact Gaussian formula syntax matches the supplied historical formula.
+- Custom priors exactly match all five requested classes/constants.
+- Default cases pass NULL; resolved fixed-effect b priors are genuinely flat.
+- All 12 case settings and six custom/default pairs match the case design.
+- Every case retains 4000 post-warmup draws per chain (16000 total).
+- Actual 10%/20% inputs are byte-identical to the previous frozen inputs.
+- All three subsets retain whole eligible casts and unchanged response,
+  chlorophyll, surface baseline, depths, distance, MLD and grouping values.
+- Subsets are nested: 108/216/540 casts; 15228/30455/76139 observations.
+- Both prior options generate real brms data and Stan code at each fraction.
+- All six constructions have 9 fixed-effect and 104 penalized-spline columns.
+- Generated Stan code contains reduce_sum for within-chain threading.
+- The actual brm call uses the case's cores, chains, threads, iter, warmup,
+  refresh, priors and sampler controls, with CmdStanR and all parameters saved.
+- Collector handles no completed fits and partial check output without errors.
+- Collector correctly matches all six prior pairs and six sampler pairs.
+
+Scope:
+- No model was sampled locally; no Ibex job was submitted during packaging.
+- Local Bash execution is restricted by the Windows environment.
+- submit_tests.sh runs an isolated mock-Slurm wiring self-test on Ibex,
+  then bash -n, R syntax/configuration checks, and sbatch --test-only.
+- Actual preparation validates the data/model on Ibex before fitting.
+- These checks establish input/configuration integrity, not convergence.

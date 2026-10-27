@@ -1,0 +1,1 @@
+Fit serialized with draws; diagnostics and predictions follow separately

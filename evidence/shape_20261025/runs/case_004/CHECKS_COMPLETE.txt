@@ -1,0 +1,4 @@
+Complete; all diagnostic warnings remain visible.
+Full-data reconstruction is never labelled held-out validation.
+Conditional and zero-group-effect population predictions have distinct interpretations.
+Onset/width errors retain their comparable-case counts and censoring.

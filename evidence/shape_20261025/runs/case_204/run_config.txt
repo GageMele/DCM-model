@@ -1,0 +1,37 @@
+$case
+    case_id                                                      label
+204     204 s204_cast_selection_tensor_halfshift_region_p20_k7_uniform
+             block                equation subset fraction   split
+204 cast_selection tensor_halfshift_region    p20      0.2 primary
+                     dataset_id selection selection_seed    prior      mode
+204 primary_p20_repeat_20261023    repeat       20261023 custom_z posterior
+    variance   family cast autocor depth_max k_depth k_mld k_distance k_profile
+204   region gaussian none    none       150       7     4          5   uniform
+    chains cores threads cpus memory_gb iter warmup samples adapt_delta
+204      4     4       4   16        96 3000   1000    2000        0.97
+    treedepth seed refresh evaluation_role fit_days priority
+204        14 1234     100         heldout        7       10
+    equation_reference_case settings_reference_case
+204                     197                     204
+
+$job_id
+[1] "54251074"
+
+$allocated_cpus
+[1] 16
+
+$hostname
+[1] "cn509-21-l"
+
+$data_md5
+[1] "59f3cdcd0147fd8d86cb654430c6560b"
+
+$source_md5
+[1] "80c285d7215ecee12075b2ad40cd321a"
+
+$formula
+[1] "chl_norm ~ 1 + Region + distance_z + t2(depth_mld_half, mld_z, by = Region, bs = c(\"cr\", \"cr\"), k = c(7, 4)) + (1 | Ocean:Region:date) + (1 | Ocean:Region:enso)  sigma ~ 0 + Region"
+
+$cmdstan_version
+[1] "2.37.0"
+

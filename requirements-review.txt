@@ -1,0 +1,5 @@
+# Optional Python dependencies for results/20261025/analyze_shape_review.py.
+# This is not a historical lockfile. Repository verification uses only stdlib.
+numpy
+pandas
+matplotlib

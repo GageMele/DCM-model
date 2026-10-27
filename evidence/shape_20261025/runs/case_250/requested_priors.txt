@@ -1,0 +1,12 @@
+                   prior     class coef group resp  dpar nlpar   lb   ub tag
+ student_t(3,0.73,5.448) Intercept                             <NA> <NA>    
+             normal(0,2)         b                             <NA> <NA>    
+           normal(0,1.5)        sd                             <NA> <NA>    
+           normal(0,1.5)       sds                             <NA> <NA>    
+             normal(0,1)         b                 sigma       <NA> <NA>    
+ source
+   user
+   user
+   user
+   user
+   user

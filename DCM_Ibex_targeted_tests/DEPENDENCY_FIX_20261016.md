@@ -1,0 +1,15 @@
+# Targeted campaign dependency repair
+
+The supplied log shows successful preparation job 53865144, all 63 fit/check job pairs submitted, 57 posterior fits running, and all six prior-predictive fits/checks completed at 13:52 on 16 October 2026 (Riyadh). Submission then stopped at old-fit evaluation 68, after 67 of the original 117 eligible evaluations had been accepted. The final collector had not been submitted.
+
+The rejected request still attached `afterok:53865144`, although preparation had finished several minutes earlier. This is consistent with the preparation job leaving Slurm's live job table. Slurm documents that an `afterok` dependency must be submitted while its parent is active or within the configured MinJobAge window. The actual Ibex MinJobAge value was not supplied, so expiry is a likely explanation rather than a verified cluster-configuration finding.
+
+The fix stops attaching preparation dependencies once `PREPARATION_COMPLETE.txt` exists. A failed preparation still prevents new submissions. Final report jobs depend on all currently active recorded fits, checks and evaluation jobs, omitting completed job IDs that may have expired. A definite dependency rejection causes a fresh live-job query and a bounded retry. Accepted submissions are never retried automatically.
+
+`repair_targeted_dcm_dependencies.sh` targets the experiment shown in this log by default. It verifies that preparation passed and that all 63 fit/check pairs are recorded, tests the replacement scheduler helpers using offline fixtures, backs up the existing scheduler scripts, and replaces only scheduling/test/documentation files. Model equations, priors, inputs, fitting code, prediction code and saved fits are not changed. It then appends missing old-fit prediction checks and schedules the final report. A repeat invocation skips already registered evaluations and reuses an active collector that watches the same job registrations.
+
+The default experiment is `experiments/targeted150_20261016T104550Z_296126`. An explicitly supplied `EXPERIMENT_DIR` may select another prepared targeted150 experiment under the same project. The patch also updates the installed package's submission helpers for future campaigns. Do not rerun the original 63-fit installer to recover this campaign.
+
+The exact 67-of-117 regression fixture adds 50 prediction checks and one final collector, preserves all original fit/check registrations and previous 67 evaluation IDs, waits for both previously active and newly submitted work, and submits no model fits. Additional fixtures check interrupted-submission recovery, duplicate prevention, completed and failed preparation, an expired-dependency race, and collection when no jobs remain active. No real Slurm calls or model fits occur in these local tests. Shell syntax and the same offline tests run on Ibex before the patch is applied.
+
+Sources: [Slurm sbatch dependencies](https://slurm.schedmd.com/sbatch.html#OPT_dependency), [Slurm MinJobAge](https://slurm.schedmd.com/slurm.conf.html#OPT_MinJobAge).

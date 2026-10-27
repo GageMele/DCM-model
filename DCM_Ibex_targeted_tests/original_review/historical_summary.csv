@@ -1,0 +1,2 @@
+"observations","min_depth","max_depth","chains","iter","warmup","retained","max_rhat","min_bulk_ess","min_tail_ess","divergences","tree_hits","min_ebfmi"
+255369,10,250,4,5000,1000,16000,1.00165501575134,3680.01403335347,6854.82094641109,0,0,0.701434886782302

@@ -1,0 +1,4 @@
+"equation","k_depth","observations","casts","stan_fixed_effect_columns","stan_penalized_spline_columns"
+"additive",15,15228,108,10,104
+"mld_varying",15,15228,108,9,117
+"mld_only",15,15228,108,9,13

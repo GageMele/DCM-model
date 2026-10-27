@@ -1,0 +1,325 @@
+SAVED FIT CLASS: brmsfit 
+NAMES: formula data prior data2 stanvars model save_pars algorithm backend threads opencl stan_args fit basis criteria file version family autocor ranef cov_ranef stan_funs data.name 
+FORMULA:
+chl_norm ~ 1 + Region + log10_distance + s(depth, by = Region, bs = "cr", k = 15) + (1 | Ocean:Region:date) + (1 | Ocean:Region:enso) 
+ENGINE CLASS: stanfit TYPE: S4 
+ENGINE ATTRIBUTES: model_name model_pars par_dims mode sim inits stan_args stanmodel date .MISC class metadata CmdStanModel 
+BACKEND: cmdstanr 
+DATA DIM: 255369 9 
+COLUMNS: chl_norm Region log10_distance Ocean date enso depth Ocean:Region:date Ocean:Region:enso 
+VARIABLE depth RANGE 10 250 
+  0%   1%   5%  50%  95%  99% 100% 
+  10   12   22  130  238  248  250 
+VARIABLE chl_norm RANGE -2.687472 88.7219 
+         0%          1%          5%         50%         95%         99% 
+-2.68747216 -1.11277387 -0.92168702  0.04793299  3.77698748 10.13772023 
+       100% 
+88.72189807 
+VARIABLE log10_distance RANGE -0.4214908 2.052572 
+         0%          1%          5%         50%         95%         99% 
+-0.42149082  0.07852278  0.25555700  1.13319912  1.78271487  1.96880771 
+       100% 
+ 2.05257192 
+
+Central RS Equatorial    Hawiian    Mariana   North RS       NWHI      Samoa 
+     20004      53502      29402      47860      13876      24100      52056 
+  South RS 
+     14569 
+PRIORS:
+                         prior     class
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+                  normal(0, 2)         b
+ student_t(3, 0.73, 2 * 2.724) Intercept
+          student_t(3, 0, 1.5)        sd
+          student_t(3, 0, 1.5)        sd
+          student_t(3, 0, 1.5)        sd
+          student_t(3, 0, 1.5)        sd
+          student_t(3, 0, 1.5)        sd
+          student_t(3, 0, 1.5)       sds
+          student_t(3, 0, 1.5)       sds
+          student_t(3, 0, 2.5)     sigma
+                                     coef             group resp dpar nlpar lb
+                                                                              
+                           log10_distance                                     
+                         RegionEquatorial                                     
+                            RegionHawiian                                     
+                            RegionMariana                                     
+                            RegionNorthRS                                     
+                               RegionNWHI                                     
+                              RegionSamoa                                     
+                            RegionSouthRS                                     
+                 sdepth:RegionCentralRS_1                                     
+                sdepth:RegionEquatorial_1                                     
+                   sdepth:RegionHawiian_1                                     
+                   sdepth:RegionMariana_1                                     
+                   sdepth:RegionNorthRS_1                                     
+                      sdepth:RegionNWHI_1                                     
+                     sdepth:RegionSamoa_1                                     
+                   sdepth:RegionSouthRS_1                                     
+                                                                              
+                                                                             0
+                                          Ocean:Region:date                  0
+                                Intercept Ocean:Region:date                  0
+                                          Ocean:Region:enso                  0
+                                Intercept Ocean:Region:enso                  0
+                                                                             0
+ s(depth, by = Region, bs = "cr", k = 15)                                    0
+                                                                             0
+ ub       source
+            user
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+            user
+            user
+    (vectorized)
+    (vectorized)
+    (vectorized)
+    (vectorized)
+            user
+    (vectorized)
+            user
+VERSION:
+$brms
+[1] '2.22.0'
+
+$rstan
+[1] '2.32.7'
+
+$stanHeaders
+[1] '2.32.10'
+
+$cmdstanr
+[1] '0.9.0.9000'
+
+$cmdstan
+[1] '2.37.0'
+
+TIME:
+NULL
+SIM FIELDS: samples iter thin warmup chains n_save warmup2 permutation pars_oi dims_oi fnames_oi n_flatnames pars_oi_old dims_oi_old fnames_oi_old 
+$iter
+[1] 5000
+
+$warmup
+[1] 1000
+
+$chains
+[1] 4
+
+$n_save
+[1] 4000 4000 4000 4000
+
+$warmup2
+[1] 0 0 0 0
+
+$thin
+[1] 1
+
+SAMPLES CLASS/DIM: list 4 
+FIRST CHAIN ATTRIBUTES: names row.names class sampler_params adaptation_info args elapsed_time mean_pars mean_lp__ 
+FIRST CHAIN PARAMETERS: b_Intercept b_RegionEquatorial b_RegionHawiian b_RegionMariana b_RegionNorthRS b_RegionNWHI b_RegionSamoa b_RegionSouthRS b_log10_distance bs_sdepth:RegionCentralRS_1 bs_sdepth:RegionEquatorial_1 bs_sdepth:RegionHawiian_1 bs_sdepth:RegionMariana_1 bs_sdepth:RegionNorthRS_1 bs_sdepth:RegionNWHI_1 bs_sdepth:RegionSamoa_1 bs_sdepth:RegionSouthRS_1 sd_Ocean:Region:date__Intercept sd_Ocean:Region:enso__Intercept sds_sdepthRegionCentralRS_1 
+List of 4
+ $ :List of 42
+  ..$ stan_version_major: chr "2"
+  ..$ stan_version_minor: chr "37"
+  ..$ stan_version_patch: chr "0"
+  ..$ model             : chr "model_f35d6e170624663f8d6e4713cdaa8ba4_model"
+  ..$ start_datetime    : chr "2026-03-2611:55:27UTC"
+  ..$ method            : chr "sample"
+  ..$ iter              : num 5000
+  ..$ warmup            : num 1000
+  ..$ save_warmup       : int 0
+  ..$ thin              : num 1
+  ..$ engaged           : chr "1"
+  ..$ gamma             : num 0.05
+  ..$ delta             : num 0.97
+  ..$ kappa             : num 0.75
+  ..$ t0                : num 10
+  ..$ init_buffer       : chr "75"
+  ..$ term_buffer       : chr "50"
+  ..$ window            : chr "25"
+  ..$ algorithm         : chr "hmc"
+  ..$ engine            : chr "nuts"
+  ..$ max_depth         : num 14
+  ..$ metric            : chr "diag_e"
+  ..$ metric_file       : chr(0) 
+  ..$ stepsize          : num 1
+  ..$ stepsize_jitter   : num 0
+  ..$ num_chains        : chr "1"
+  ..$ chain_id          : int 1
+  ..$ file              : chr(0) 
+  ..$ init              : chr "2"
+  ..$ seed              : chr "488349520"
+  ..$ file              : chr "/var/folders/gk/hgjys3n950v43_vdg7v_bk6m0000gq/T/Rtmp1SPqc0/model_f35d6e170624663f8d6e4713cdaa8ba4-202603261455-1-5d04cd.csv"
+  ..$ diagnostic_file   : chr(0) 
+  ..$ refresh           : chr "50"
+  ..$ sig_figs          : chr "8"
+  ..$ profile_file      : chr "/var/folders/gk/hgjys3n950v43_vdg7v_bk6m0000gq/T/Rtmp1SPqc0/model_f35d6e170624663f8d6e4713cdaa8ba4-profile-2026"| __truncated__
+  ..$ num_threads       : chr "2"
+  ..$ stanc_version     : chr "stanc3v2.37.0"
+  ..$ stancflags        : chr(0) 
+  ..$ adaptation_info   : chr "# Step size = 0.00350167\n# Diagonal elements of inverse mass matrix:\n# 0.528619, 0.561689, 0.504541, 0.763447"| __truncated__
+  ..$ has_time          : logi TRUE
+  ..$ time_info         : chr [1:4] "#  Elapsed Time: 170278 seconds (Warm-up)" "#                760299 seconds (Sampling)" "#                930577 seconds (Total)" "# "
+  ..$ sampler_t         : chr "NUTS(diag_e)"
+ $ :List of 42
+  ..$ stan_version_major: chr "2"
+  ..$ stan_version_minor: chr "37"
+  ..$ stan_version_patch: chr "0"
+  ..$ model             : chr "model_f35d6e170624663f8d6e4713cdaa8ba4_model"
+  ..$ start_datetime    : chr "2026-03-2611:55:27UTC"
+  ..$ method            : chr "sample"
+  ..$ iter              : num 5000
+  ..$ warmup            : num 1000
+  ..$ save_warmup       : int 0
+  ..$ thin              : num 1
+  ..$ engaged           : chr "1"
+  ..$ gamma             : num 0.05
+  ..$ delta             : num 0.97
+  ..$ kappa             : num 0.75
+  ..$ t0                : num 10
+  ..$ init_buffer       : chr "75"
+  ..$ term_buffer       : chr "50"
+  ..$ window            : chr "25"
+  ..$ algorithm         : chr "hmc"
+  ..$ engine            : chr "nuts"
+  ..$ max_depth         : num 14
+  ..$ metric            : chr "diag_e"
+  ..$ metric_file       : chr(0) 
+  ..$ stepsize          : num 1
+  ..$ stepsize_jitter   : num 0
+  ..$ num_chains        : chr "1"
+  ..$ chain_id          : int 2
+  ..$ file              : chr(0) 
+  ..$ init              : chr "2"
+  ..$ seed              : chr "488349520"
+  ..$ file              : chr "/var/folders/gk/hgjys3n950v43_vdg7v_bk6m0000gq/T/Rtmp1SPqc0/model_f35d6e170624663f8d6e4713cdaa8ba4-202603261455-2-5d04cd.csv"
+  ..$ diagnostic_file   : chr(0) 
+  ..$ refresh           : chr "50"
+  ..$ sig_figs          : chr "8"
+  ..$ profile_file      : chr "/var/folders/gk/hgjys3n950v43_vdg7v_bk6m0000gq/T/Rtmp1SPqc0/model_f35d6e170624663f8d6e4713cdaa8ba4-profile-2026"| __truncated__
+  ..$ num_threads       : chr "2"
+  ..$ stanc_version     : chr "stanc3v2.37.0"
+  ..$ stancflags        : chr(0) 
+  ..$ adaptation_info   : chr "# Step size = 0.00346206\n# Diagonal elements of inverse mass matrix:\n# 0.550156, 0.492734, 0.509651, 0.837738"| __truncated__
+  ..$ has_time          : logi TRUE
+  ..$ time_info         : chr [1:4] "#  Elapsed Time: 166474 seconds (Warm-up)" "#                744248 seconds (Sampling)" "#                910722 seconds (Total)" "# "
+  ..$ sampler_t         : chr "NUTS(diag_e)"
+ $ :List of 42
+  ..$ stan_version_major: chr "2"
+  ..$ stan_version_minor: chr "37"
+  ..$ stan_version_patch: chr "0"
+  ..$ model             : chr "model_f35d6e170624663f8d6e4713cdaa8ba4_model"
+  ..$ start_datetime    : chr "2026-03-2611:55:27UTC"
+  ..$ method            : chr "sample"
+  ..$ iter              : num 5000
+  ..$ warmup            : num 1000
+  ..$ save_warmup       : int 0
+  ..$ thin              : num 1
+  ..$ engaged           : chr "1"
+  ..$ gamma             : num 0.05
+  ..$ delta             : num 0.97
+  ..$ kappa             : num 0.75
+  ..$ t0                : num 10
+  ..$ init_buffer       : chr "75"
+  ..$ term_buffer       : chr "50"
+  ..$ window            : chr "25"
+  ..$ algorithm         : chr "hmc"
+  ..$ engine            : chr "nuts"
+  ..$ max_depth         : num 14
+  ..$ metric            : chr "diag_e"
+  ..$ metric_file       : chr(0) 
+  ..$ stepsize          : num 1
+  ..$ stepsize_jitter   : num 0
+  ..$ num_chains        : chr "1"
+  ..$ chain_id          : int 3
+  ..$ file              : chr(0) 
+  ..$ init              : chr "2"
+  ..$ seed              : chr "488349520"
+  ..$ file              : chr "/var/folders/gk/hgjys3n950v43_vdg7v_bk6m0000gq/T/Rtmp1SPqc0/model_f35d6e170624663f8d6e4713cdaa8ba4-202603261455-3-5d04cd.csv"
+  ..$ diagnostic_file   : chr(0) 
+  ..$ refresh           : chr "50"
+  ..$ sig_figs          : chr "8"
+  ..$ profile_file      : chr "/var/folders/gk/hgjys3n950v43_vdg7v_bk6m0000gq/T/Rtmp1SPqc0/model_f35d6e170624663f8d6e4713cdaa8ba4-profile-2026"| __truncated__
+  ..$ num_threads       : chr "2"
+  ..$ stanc_version     : chr "stanc3v2.37.0"
+  ..$ stancflags        : chr(0) 
+  ..$ adaptation_info   : chr "# Step size = 0.00352401\n# Diagonal elements of inverse mass matrix:\n# 0.556201, 0.635265, 0.490514, 0.682034"| __truncated__
+  ..$ has_time          : logi TRUE
+  ..$ time_info         : chr [1:4] "#  Elapsed Time: 165783 seconds (Warm-up)" "#                775957 seconds (Sampling)" "#                941741 seconds (Total)" "# "
+  ..$ sampler_t         : chr "NUTS(diag_e)"
+ $ :List of 42
+  ..$ stan_version_major: chr "2"
+  ..$ stan_version_minor: chr "37"
+  ..$ stan_version_patch: chr "0"
+  ..$ model             : chr "model_f35d6e170624663f8d6e4713cdaa8ba4_model"
+  ..$ start_datetime    : chr "2026-03-2611:55:27UTC"
+  ..$ method            : chr "sample"
+  ..$ iter              : num 5000
+  ..$ warmup            : num 1000
+  ..$ save_warmup       : int 0
+  ..$ thin              : num 1
+  ..$ engaged           : chr "1"
+  ..$ gamma             : num 0.05
+  ..$ delta             : num 0.97
+  ..$ kappa             : num 0.75
+  ..$ t0                : num 10
+  ..$ init_buffer       : chr "75"
+  ..$ term_buffer       : chr "50"
+  ..$ window            : chr "25"
+  ..$ algorithm         : chr "hmc"
+  ..$ engine            : chr "nuts"
+  ..$ max_depth         : num 14
+  ..$ metric            : chr "diag_e"
+  ..$ metric_file       : chr(0) 
+  ..$ stepsize          : num 1
+  ..$ stepsize_jitter   : num 0
+  ..$ num_chains        : chr "1"
+  ..$ chain_id          : int 4
+  ..$ file              : chr(0) 
+  ..$ init              : chr "2"
+  ..$ seed              : chr "488349520"
+  ..$ file              : chr "/var/folders/gk/hgjys3n950v43_vdg7v_bk6m0000gq/T/Rtmp1SPqc0/model_f35d6e170624663f8d6e4713cdaa8ba4-202603261455-4-5d04cd.csv"
+  ..$ diagnostic_file   : chr(0) 
+  ..$ refresh           : chr "50"
+  ..$ sig_figs          : chr "8"
+  ..$ profile_file      : chr "/var/folders/gk/hgjys3n950v43_vdg7v_bk6m0000gq/T/Rtmp1SPqc0/model_f35d6e170624663f8d6e4713cdaa8ba4-profile-2026"| __truncated__
+  ..$ num_threads       : chr "2"
+  ..$ stanc_version     : chr "stanc3v2.37.0"
+  ..$ stancflags        : chr(0) 
+  ..$ adaptation_info   : chr "# Step size = 0.00362056\n# Diagonal elements of inverse mass matrix:\n# 0.480737, 0.464114, 0.537138, 0.668274"| __truncated__
+  ..$ has_time          : logi TRUE
+  ..$ time_info         : chr [1:4] "#  Elapsed Time: 175660 seconds (Warm-up)" "#                696877 seconds (Sampling)" "#                872538 seconds (Total)" "# "
+  ..$ sampler_t         : chr "NUTS(diag_e)"
+[1] "Mon Apr 06 12:31:18 2026"
+RDATA OBJECTS: fit_fixed_inter 
+fit_fixed_inter CLASS brmsfit SIZE 522.1 Mb 

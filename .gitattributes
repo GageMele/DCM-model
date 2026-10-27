@@ -1,5 +1,4 @@
-# Preserve exact historical source bytes across Windows and Linux.
+# Preserve exact archived bytes for source checksums across Windows/Linux.
 * -text
 *.png binary
 *.pdf binary
-*.rds binary

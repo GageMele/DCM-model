@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Python helper syntax",
+    "expanded array IDs and queue states preserved",
+    "Slurm failure raises instead of empty-success inventory",
+    "malformed queue rejected",
+    "collector default is read-only",
+    "collector apply keeps exact backup",
+    "collector repeat is idempotent"
+  ],
+  "scope": "Offline fixtures only; live Ibex SSH was blocked."
+}

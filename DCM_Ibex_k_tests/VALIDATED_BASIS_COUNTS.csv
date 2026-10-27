@@ -1,0 +1,7 @@
+"k_depth","k_distance","k_mld","nominal_basis_product_per_region","stan_fixed_effect_columns","stan_penalized_spline_columns","observations","casts"
+15,5,5,375,8,2936,15228,108
+10,5,5,250,8,1936,15228,108
+7,5,5,175,8,1336,15228,108
+5,5,5,125,8,936,15228,108
+7,4,4,112,8,832,15228,108
+5,3,3,45,8,296,15228,108

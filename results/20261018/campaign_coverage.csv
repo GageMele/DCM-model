@@ -1,0 +1,9 @@
+﻿campaign,registered,fits_complete,posterior_complete,prior_complete,common_holdout,convergence_pass,zero_tree_and_convergence
+baseline150,12,12,12,0,9,10,8
+equation150,18,18,18,0,18,3,2
+extensive150,102,99,93,6,93,62,60
+fast150,24,2,0,2,0,0,0
+k150,12,9,9,0,6,0,0
+pilot,1,0,0,0,0,0,0
+targeted150,63,61,55,6,55,33,7
+threading,4,0,0,0,0,0,0

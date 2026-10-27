@@ -1,0 +1,13 @@
+case_id	label	subset	prior	mode	chains	iter	warmup	adapt_delta	treedepth	threads	cpus	k_depth	k_distance	k_mld
+1	k15_5_5_td12	p10	current	posterior	2	1000	500	0.95	12	4	8	15	5	5
+2	k10_5_5_td12	p10	current	posterior	2	1000	500	0.95	12	4	8	10	5	5
+3	k10_5_5_td14	p10	current	posterior	2	1000	500	0.95	14	4	8	10	5	5
+4	k7_5_5_td12	p10	current	posterior	2	1000	500	0.95	12	4	8	7	5	5
+5	k7_5_5_td14	p10	current	posterior	2	1000	500	0.95	14	4	8	7	5	5
+6	k5_5_5_td12	p10	current	posterior	2	1000	500	0.95	12	4	8	5	5	5
+7	k5_5_5_td14	p10	current	posterior	2	1000	500	0.95	14	4	8	5	5	5
+8	k7_4_4_td12	p10	current	posterior	2	1000	500	0.95	12	4	8	7	4	4
+9	k7_4_4_td14	p10	current	posterior	2	1000	500	0.95	14	4	8	7	4	4
+10	k5_3_3_td12	p10	current	posterior	2	1000	500	0.95	12	4	8	5	3	3
+11	k7_4_4_td12_w1000	p10	current	posterior	2	1500	1000	0.95	12	4	8	7	4	4
+12	k7_4_4_td12_d99	p10	current	posterior	2	1000	500	0.99	12	4	8	7	4	4

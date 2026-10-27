@@ -1,0 +1,3188 @@
+---
+title: "DCM accessibility - Andrew"
+author: "Gage Mele"
+date: "2025-09-17"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+# 1. Install the CmdStanR package
+#install.packages(
+#  "cmdstanr",
+#  repos = c("https://stan-dev.r-universe.dev", getOption("repos"))
+#)
+
+# 2. Load it
+#library(cmdstanr)
+
+# 3. Check/configure the Windows C++ toolchain
+#cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+
+# 4. Download and compile CmdStan
+#cmdstanr::install_cmdstan(cores = 2)
+
+# 5. Verify the installation
+#cmdstanr::cmdstan_path()
+#cmdstanr::cmdstan_version()
+```
+
+
+```{r}
+#install.packages(
+#  c("Rcpp", "RcppParallel", "RcppEigen", "StanHeaders", "rstan"),
+#  repos = c(
+#    "https://stan-dev.r-universe.dev",
+#    "https://cloud.r-project.org"
+#  ),
+#  type = "binary"
+#)
+```
+#after restart run:
+```{r}
+#library(rstan)
+#packageVersion("rstan")
+#rstan::stan_version()
+```
+
+
+#write.csv(CTD_DCM_filtered_all, "CTD_NOAA_WHOI_KAUST.csv")
+```{r}
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(ggplot2)
+library(cmdstanr)
+library(rstan)
+library(brms)
+gc()
+```
+
+##Run code to process casts for OW, NOAA pacific, and whoi red sea before this
+
+```{r}
+set.seed(1234)
+
+```
+
+```{r}
+CTD_NOAA_WHOI_KAUST<-read.csv("CTD_NOAA_WHOI_KAUST.csv")
+```
+
+
+```{r}
+CTD_NOAA_WHOI_KAUST$cast_id<-CTD_NOAA_WHOI_KAUST$DeepCTDID
+CTD_NOAA_WHOI_KAUST$Region<-CTD_NOAA_WHOI_KAUST$Region.x
+CTD_NOAA_WHOI_KAUST$date<-CTD_NOAA_WHOI_KAUST$UTCDate.x
+#CTD_NOAA_WHOI_KAUST$lat<-CTD_NOAA_WHOI_KAUST$Latitude
+#CTD_NOAA_WHOI_KAUST$lon<-CTD_NOAA_WHOI_KAUST$Longitude
+CTD_NOAA_WHOI_KAUST$Depth_m<-CTD_NOAA_WHOI_KAUST$Depth_m
+CTD_NOAA_WHOI_KAUST$Chl<-CTD_NOAA_WHOI_KAUST$Chl
+CTD_NOAA_WHOI_KAUST$depth<-CTD_NOAA_WHOI_KAUST$Depth_m
+CTD_NOAA_WHOI_KAUST$temperature<-CTD_NOAA_WHOI_KAUST$Temp_DegC
+
+#x=38.9375, y=22.2751
+
+CTD_NOAA_WHOI_KAUST <- CTD_NOAA_WHOI_KAUST %>%
+  mutate(
+    lat = ifelse(Region == "KAUST", 22.2751, lat),   # replace with your KAUST latitude
+    lon = ifelse(Region == "KAUST", 38.9375, lon)    # replace with your KAUST longitude
+  )
+
+CTD_NOAA_WHOI_KAUST <- CTD_NOAA_WHOI_KAUST %>%
+  mutate(
+    distance = ifelse(Region == "KAUST", 2, distance)    # replace with your KAUST longitude
+  )
+
+CTD_NOAA_WHOI_KAUST_model<-CTD_NOAA_WHOI_KAUST%>%
+  dplyr::select(LocationCode, cast_id, Region, date, lat, lon, Depth_m, Chl, depth, temperature, min_dist_m, distance)
+
+
+CTD_NOAA_WHOI_KAUST_model <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(cast_id) %>%
+  mutate(
+    surface_chl = median(Chl[Depth_m >= 5 & Depth_m <= 15], na.rm = TRUE),
+    chl_norm = ((Chl - surface_chl) / surface_chl) , #* 100 add back if we want % not *surface
+    year = year(ymd(date)),
+    log10_distance = log10(distance)
+  ) %>%
+  ungroup()
+
+
+CTD_NOAA_WHOI_KAUST_model <- CTD_NOAA_WHOI_KAUST_model %>%
+  mutate(
+    enso = case_when(
+      year %in% c(2009) ~ "el_nino",
+      year %in% c(2010, 2011 ) ~ "la_nina",
+      TRUE ~ "neutral"
+    )
+  )
+
+
+str(CTD_NOAA_WHOI_KAUST_model)
+
+
+```
+
+```{r}
+your_big_df<-CTD_NOAA_WHOI_KAUST_model
+```
+
+
+#formula?
+adndrew_form <- bf(chl_norm ~ 1 + Region:depth + log10_distance + enso, family = gaussian())
+
+```{r}
+library(brms)
+library(cmdstanr)
+options(mc.cores = parallel::detectCores())
+options(brms.backend = "cmdstanr")
+```
+
+
+```{r}
+#cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+#install_cmdstan()
+
+```
+
+```{r}
+#cmdstanr::cmdstan_path()
+```
+
+
+
+```{r}
+sum(is.na(CTD_NOAA_WHOI_KAUST_model$Chl))
+sum(is.na(CTD_NOAA_WHOI_KAUST_model$chl_norm))
+sum(is.na(CTD_NOAA_WHOI_KAUST_model$log10_distance))
+sum(is.na(CTD_NOAA_WHOI_KAUST_model$enso))
+sum(is.na(CTD_NOAA_WHOI_KAUST_model$Region))
+sum(is.na(CTD_NOAA_WHOI_KAUST_model$depth))
+```
+```{r}
+df_NA <- CTD_NOAA_WHOI_KAUST_model %>%
+  filter(is.na(chl_norm))
+```
+
+#cast 9 from the WHOI dataset starts at 11m, remove it because it results in NA in the chl_norm
+```{r}
+  CTD_NOAA_WHOI_KAUST_model<- CTD_NOAA_WHOI_KAUST_model%>% drop_na(chl_norm, log10_distance, enso, Region, depth)
+
+
+
+#Trim to depths we want to look at (surface =10m, to deep = 100m)
+CTD_NOAA_WHOI_KAUST_model<- CTD_NOAA_WHOI_KAUST_model%>%
+  filter(depth >= 10)%>%
+  filter(depth <= 250)
+
+str(CTD_NOAA_WHOI_KAUST_model)
+```
+
+#remove KAUST and Equatorial Regions
+```{r}
+#Remove KAUST  Region
+
+CTD_NOAA_WHOI_KAUST_model<-CTD_NOAA_WHOI_KAUST_model%>%
+  filter(Region != "KAUST")
+
+unique(CTD_NOAA_WHOI_KAUST_model$Region)
+```
+
+```{r}
+colSums(is.na(CTD_NOAA_WHOI_KAUST_model))
+```
+
+```{r}
+str(CTD_NOAA_WHOI_KAUST_model)
+```
+
+```{r}
+#density plot to see what each region has for log10_distance
+CTD_NOAA_WHOI_KAUST_model%>%
+  ggplot()+
+  geom_density(mapping = aes(log10_distance, color = Region, fill = Region), alpha = 0.2)
+
+CTD_NOAA_WHOI_KAUST_model%>%
+  ggplot()+
+  geom_histogram(mapping = aes(log10_distance, color = Region, fill = Region), alpha = 0.2)
+
+CTD_NOAA_WHOI_KAUST_model%>%
+  ggplot()+
+  geom_histogram(mapping = aes(chl_norm, color = Region, fill = Region),binwidth = 0.5, alpha = 0.2)
+
+
+# Summary of mean & sd for Chl
+CTD_NOAA_WHOI_KAUST_model_summary <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(Region, depth) %>%
+  summarise(
+    mean_chl = mean(chl_norm, na.rm = TRUE), #maybe try making this median not mean
+    sd_chl = sd(chl_norm, na.rm = TRUE), #maybe make this like 95CI or quantiles or something
+    .groups = "drop"
+  )
+
+library(cowplot)
+
+NOAA_WHOI_KAUST_chl_norm_plot<-ggplot() +
+  # All casts in light gray
+  geom_line(
+    data = CTD_NOAA_WHOI_KAUST_model,
+    aes(x = depth, y = chl_norm, group = cast_id),
+    color = "gray80", size = 0.5
+  ) +
+  # Individual cast DCM min/max as vertical lines (will look horizontal after flip)
+  geom_vline(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(xintercept = 30),
+    color = "gray0", alpha = 0.7, linetype = "dashed"
+  ) +
+  # Individual cast DCM min/max as vertical lines (will look horizontal after flip)
+  geom_hline(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(yintercept = 0),
+    color = "gray0", alpha = 0.7, linetype = "dashed"
+  ) +
+  # Mean chl line
+  geom_line(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(x = depth, y = mean_chl, color = Region),
+    size = 1
+  ) +
+  coord_flip() +
+  scale_x_reverse() +
+  labs(
+    x = "Depth (m)",
+    y = "Chlorophyll-a (mg m⁻³)",
+    title = "CTD Chlorophyll Profiles with DCM Ranges",
+    fill = "Region",
+    color = "Region"
+  ) +
+  facet_wrap(~ Region, scales = "free_x") + #, scales = "free_x"
+  theme_cowplot() +
+  theme(legend.position = "bottom")
+
+
+NOAA_WHOI_KAUST_chl_norm_plot
+```
+
+
+
+#running median smooth
+
+library(dplyr)
+library(zoo)
+
+CTD_smooth <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(cast_id) %>%
+  arrange(depth, .by_group = TRUE) %>%
+  mutate(
+    # 5-point running median (≈5 m smooth)
+    Chl_med5 = rollapply(
+      data = Chl,
+      width = 5,
+      FUN = mean,
+      align = "center",
+      fill = "extend"
+    ),
+    
+    chl_norm_med5 = rollapply(
+      data = chl_norm,
+      width = 5,
+      FUN = mean,
+      align = "center",
+      fill = "extend"
+    )
+  ) %>%
+  ungroup()
+
+
+library(ggplot2)
+
+CTD_smooth %>%
+  filter(cast_id == "HI1001_LEGI001") %>%
+  ggplot(aes(y = Chl, x = depth)) +
+  coord_flip()+
+  scale_x_reverse()+
+  geom_line(alpha = 0.4) +
+  geom_line(aes(y = Chl_med5), color = "red") 
+
+
+
+
+#running median smooth
+
+library(dplyr)
+library(zoo)
+
+CTD_smooth <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(cast_id) %>%
+  arrange(depth, .by_group = TRUE) %>%
+  mutate(
+    # 5-point running median (≈3 m smooth)
+    Chl_med5 = rollapply(
+      data = Chl,
+      width = 3,
+      FUN = median,
+      align = "center",
+      fill = "extend"
+    ),
+    
+    chl_norm_med5 = rollapply(
+      data = chl_norm,
+      width = 3,
+      FUN = median,
+      align = "center",
+      fill = "extend"
+    )
+  ) %>%
+  ungroup()
+
+
+library(ggplot2)
+
+CTD_smooth %>%
+  filter(cast_id == "HI1001_LEGI001") %>%
+  ggplot(aes(y = Chl, x = depth)) +
+  coord_flip()+
+  scale_x_reverse()+
+  geom_line(alpha = 0.4) +
+  geom_line(aes(y = Chl_med5), color = "red") 
+
+
+
+
+
+
+#running median smooth
+
+library(dplyr)
+library(zoo)
+
+CTD_smooth <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(cast_id) %>%
+  arrange(depth, .by_group = TRUE) %>%
+  mutate(
+    # 5-point running median (≈5 m smooth)
+    Chl_med5 = rollapply(
+      data = Chl,
+      width = 5,
+      FUN = median,
+      align = "center",
+      fill = "extend"
+    ),
+    
+    chl_norm_med5 = rollapply(
+      data = chl_norm,
+      width = 5,
+      FUN = median,
+      align = "center",
+      fill = "extend"
+    )
+  ) %>%
+  ungroup()
+
+
+library(ggplot2)
+
+CTD_smooth %>%
+  filter(cast_id == "HI1001_LEGI001") %>%
+  ggplot(aes(y = Chl, x = depth)) +
+  coord_flip()+
+  scale_x_reverse()+
+  geom_line(alpha = 0.4) +
+  geom_line(aes(y = Chl_med5), color = "red") 
+
+
+
+
+#running median smooth
+
+#running median smooth
+
+library(dplyr)
+library(zoo)
+
+CTD_smooth <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(cast_id) %>%
+  arrange(depth, .by_group = TRUE) %>%
+  mutate(
+    # 5-point running median (≈10 m smooth)
+    Chl_med5 = rollapply(
+      data = Chl,
+      width = 10,
+      FUN = median,
+      align = "center",
+      fill = "extend"
+    ),
+    
+    chl_norm_med5 = rollapply(
+      data = chl_norm,
+      width = 10,
+      FUN = median,
+      align = "center",
+      fill = "extend"
+    )
+  ) %>%
+  ungroup()
+
+
+library(ggplot2)
+
+CTD_smooth %>%
+  filter(cast_id == "HI1001_LEGI001") %>%
+  ggplot(aes(y = Chl, x = depth)) +
+  coord_flip()+
+  scale_x_reverse()+
+  geom_line(alpha = 0.4) +
+  geom_line(aes(y = Chl_med5), color = "red") 
+
+
+CTD_smooth$Chl<-CTD_smooth$Chl_med5
+
+CTD_smooth$chl_norm<-CTD_smooth$chl_norm_med5
+
+CTD_NOAA_WHOI_KAUST_model <-CTD_smooth
+
+#Recalculate chl_norm based on smooth
+CTD_NOAA_WHOI_KAUST_model <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(cast_id) %>%
+  mutate(
+    chl_norm = ((Chl - surface_chl) / surface_chl) #* 100
+  ) %>%
+  ungroup()
+
+
+
+#bin data in 10m bins
+
+
+
+CTD_binned <- CTD_NOAA_WHOI_KAUST_model %>%
+  # create 5 m bins starting at 10 m
+  mutate(depth_bin = cut(
+    depth,
+    breaks = seq(10, max(depth, na.rm = TRUE) + 10, by = 5), #average in 5m depth bins
+    include.lowest = TRUE
+  )) %>%
+  # group by cast and depth bin
+  group_by(cast_id, depth_bin) %>%
+  summarise(
+    Chl = median(Chl, na.rm = TRUE),          # median chl in 5 m bin
+    depth = max(depth, na.rm = TRUE),          # upper bound (max) of the bin
+    Region = first(Region),
+    date = first(date),
+    lat = first(lat),
+    lon = first(lon),
+    min_dist_m = first(min_dist_m),
+    distance = first(distance),
+    surface_chl = first(surface_chl),
+    chl_norm = median(chl_norm, na.rm = TRUE),   # smoothed chl_norm too
+    year = first(year),
+    log10_distance = first(log10_distance),
+    enso = first(enso),
+    .groups = "drop"
+  )
+
+CTD_NOAA_WHOI_KAUST_model <- CTD_binned
+
+
+
+#Recalculate chl_norm based on smooth
+CTD_NOAA_WHOI_KAUST_model <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(cast_id) %>%
+  mutate(
+    chl_norm = ((Chl - surface_chl) / surface_chl) #* 100
+  ) %>%
+  ungroup()
+
+
+
+
+
+
+##################################
+#running median smooth
+
+library(dplyr)
+library(zoo)
+
+CTD_smooth <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(cast_id) %>%
+  arrange(depth, .by_group = TRUE) %>%
+  mutate(
+    # 5-point running median (≈5 m smooth)
+    Chl_med5 = rollapply(
+      data = Chl,
+      width = 5,
+      FUN = median,
+      align = "center",
+      fill = "extend"
+    ),
+    
+    chl_norm_med5 = rollapply(
+      data = chl_norm,
+      width = 5,
+      FUN = median,
+      align = "center",
+      fill = "extend"
+    )
+  ) %>%
+  ungroup()
+
+
+library(ggplot2)
+
+CTD_smooth %>%
+  filter(cast_id == "HI1001_LEGI001") %>%
+  ggplot(aes(y = Chl, x = depth)) +
+  coord_flip()+
+  scale_x_reverse()+
+  geom_line(alpha = 0.4) +
+  geom_line(aes(y = Chl_med5), color = "red") 
+
+
+
+CTD_smooth$Chl<-CTD_smooth$Chl_med5
+
+CTD_smooth$chl_norm<-CTD_smooth$chl_norm_med5
+
+CTD_NOAA_WHOI_KAUST_model <-CTD_smooth
+
+#Recalculate chl_norm based on smooth
+CTD_NOAA_WHOI_KAUST_model <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(cast_id) %>%
+  mutate(
+    chl_norm = ((Chl - surface_chl) / surface_chl) #* 100
+  ) %>%
+  ungroup()
+
+#############################################
+
+
+```{r}
+colSums(is.na(CTD_NOAA_WHOI_KAUST_model))
+
+```
+
+
+
+#plot of chl_norm
+```{r}
+#density plot to see what each region has for log10_distance
+CTD_NOAA_WHOI_KAUST_model%>%
+  ggplot()+
+  geom_density(mapping = aes(log10_distance, color = Region, fill = Region), alpha = 0.2)
+
+CTD_NOAA_WHOI_KAUST_model%>%
+  ggplot()+
+  geom_histogram(mapping = aes(log10_distance, color = Region, fill = Region), alpha = 0.2)
+
+CTD_NOAA_WHOI_KAUST_model%>%
+  ggplot()+
+  geom_histogram(mapping = aes(chl_norm, color = Region, fill = Region),binwidth = 0.5, alpha = 0.2)
+
+
+# Summary of mean & sd for Chl
+CTD_NOAA_WHOI_KAUST_model_summary <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(Region, depth) %>%
+  summarise(
+    mean_chl = median(chl_norm, na.rm = TRUE), #maybe try making this median not mean
+    sd_chl = sd(chl_norm, na.rm = TRUE), #maybe make this like 95CI or quantiles or something
+    .groups = "drop"
+  )
+
+library(cowplot)
+
+NOAA_WHOI_KAUST_chl_norm_plot<-ggplot() +
+  # All casts in light gray
+  geom_line(
+    data = CTD_NOAA_WHOI_KAUST_model,
+    aes(x = depth, y = chl_norm, group = cast_id),
+    color = "gray80", size = 0.5
+  ) +
+  # Individual cast DCM min/max as vertical lines (will look horizontal after flip)
+  geom_vline(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(xintercept = 30),
+    color = "gray0", alpha = 0.7, linetype = "dashed"
+  ) +
+  # Individual cast DCM min/max as vertical lines (will look horizontal after flip)
+  geom_hline(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(yintercept = 0),
+    color = "gray0", alpha = 0.7, linetype = "dashed"
+  ) +
+  # Mean chl line
+  geom_line(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(x = depth, y = mean_chl, color = Region),
+    size = 1
+  ) +
+  coord_flip() +
+  scale_x_reverse() +
+  labs(
+    x = "Depth (m)",
+    y = "Chlorophyll-a (mg m⁻³)",
+    title = "CTD Chlorophyll Profiles with DCM Ranges",
+    fill = "Region",
+    color = "Region"
+  ) +
+  facet_wrap(~ Region, scales = "free_x") + #, scales = "free_x"
+  theme_cowplot() +
+  theme(legend.position = "bottom")
+
+
+NOAA_WHOI_KAUST_chl_norm_plot
+```
+
+```{r}
+ggsave("normalized_chl_per_region.pdf", plot =NOAA_WHOI_KAUST_chl_norm_plot, height = 20, width = 20, units = c("in"), dpi = 300)
+```
+
+
+```{r}
+#histogram of all data
+hist(CTD_NOAA_WHOI_KAUST_model$chl_norm)
+```
+
+
+#code to subset the data
+#subset to 10% of casts
+
+# assuming your dataframe is called CTD
+set.seed(1234)  # optional, for reproducibility
+
+# get 10% of unique cast IDs
+subset_casts <- sample(unique(CTD_NOAA_WHOI_KAUST_model$cast_id), size = 0.1 * length(unique(CTD_NOAA_WHOI_KAUST_model$cast_id)))
+
+# subset the dataframe to only those casts
+CTD_subset <-CTD_NOAA_WHOI_KAUST_model%>% 
+  filter(cast_id %in% subset_casts)
+
+#histogram of all data
+hist(CTD_subset$chl_norm)
+
+#rename data for use 
+CTD_NOAA_WHOI_KAUST_model<-CTD_subset
+
+
+
+
+
+#plot subsets
+# Summary of mean & sd for Chl
+CTD_NOAA_WHOI_KAUST_model_summary <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(Region, depth) %>%
+  summarise(
+    mean_chl = mean(chl_norm, na.rm = TRUE),
+    sd_chl = sd(chl_norm, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+library(cowplot)
+
+NOAA_WHOI_KAUST_chl_norm_plot<-ggplot() +
+  # All casts in light gray
+  geom_line(
+    data = CTD_NOAA_WHOI_KAUST_model,
+    aes(x = depth, y = chl_norm, group = cast_id),
+    color = "gray80", size = 0.5
+  ) +
+  # Individual cast DCM min/max as vertical lines (will look horizontal after flip)
+  geom_vline(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(xintercept = 30),
+    color = "gray0", alpha = 0.7, linetype = "dashed"
+  ) +
+  # Individual cast DCM min/max as vertical lines (will look horizontal after flip)
+  geom_hline(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(yintercept = 0),
+    color = "gray0", alpha = 0.7, linetype = "dashed"
+  ) +
+  # Mean chl line
+  geom_line(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(x = depth, y = mean_chl, color = Region),
+    size = 1
+  ) +
+  coord_flip() +
+  scale_x_reverse() +
+  labs(
+    x = "Depth (m)",
+    y = "Chlorophyll-a (mg m⁻³)",
+    title = "CTD Chlorophyll Profiles with DCM Ranges",
+    fill = "Region",
+    color = "Region"
+  ) +
+  facet_wrap(~ Region, scales = "free_x") +
+  theme_cowplot() +
+  theme(legend.position = "bottom")
+
+
+NOAA_WHOI_KAUST_chl_norm_plot
+
+```{r}
+summary(CTD_NOAA_WHOI_KAUST_model)
+
+CTD<-CTD_NOAA_WHOI_KAUST_model%>% select(chl_norm,  Region, depth, date, log10_distance, enso)
+
+summary(CTD)
+
+```
+
+```{r}
+###set priors based on the data
+sd_y  <- sd(CTD_NOAA_WHOI_KAUST_model$chl_norm, na.rm = TRUE)
+mean_y <- mean(CTD_NOAA_WHOI_KAUST_model$chl_norm, na.rm = TRUE)
+sd_y; mean_y
+```
+
+
+
+
+###```{r}
+#code to subset the data
+#subset to 10% of casts
+
+# assuming your dataframe is called CTD
+set.seed(123)  # optional, for reproducibility
+
+# get 10% of unique cast IDs
+subset_casts <- sample(unique(CTD_NOAA_WHOI_KAUST_model$cast_id), size = 1 * length(unique(CTD_NOAA_WHOI_KAUST_model$cast_id)))
+
+# subset the dataframe to only those casts
+CTD_subset <-CTD_NOAA_WHOI_KAUST_model%>% 
+  filter(cast_id %in% subset_casts)
+
+#histogram of all data
+hist(CTD_subset$chl_norm)
+
+#rename data for use 
+CTD_NOAA_WHOI_KAUST_model<-CTD_subset
+
+summary(CTD_NOAA_WHOI_KAUST_model)
+
+
+
+#density plot to see what each region has for log10_distance
+CTD_NOAA_WHOI_KAUST_model%>%
+  ggplot()+
+  geom_density(mapping = aes(log10_distance, color = Region, fill = Region), alpha = 0.2)
+
+CTD_NOAA_WHOI_KAUST_model%>%
+  ggplot()+
+  geom_histogram(mapping = aes(log10_distance, color = Region, fill = Region), alpha = 0.2)
+
+CTD_NOAA_WHOI_KAUST_model%>%
+  ggplot()+
+  geom_histogram(mapping = aes(chl_norm, color = Region, fill = Region),binwidth = 0.5, alpha = 0.2)
+
+
+
+#plot subsets
+# Summary of mean & sd for Chl
+CTD_NOAA_WHOI_KAUST_model_summary <- CTD_NOAA_WHOI_KAUST_model %>%
+  group_by(Region, depth) %>%
+  summarise(
+    mean_chl = median(chl_norm, na.rm = TRUE),
+    sd_chl = sd(chl_norm, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+library(cowplot)
+
+NOAA_WHOI_KAUST_chl_norm_plot<-ggplot() +
+  # All casts in light gray
+  geom_line(
+    data = CTD_NOAA_WHOI_KAUST_model,
+    aes(x = depth, y = chl_norm, group = cast_id),
+    color = "gray80", size = 0.5
+  ) +
+  # Individual cast DCM min/max as vertical lines (will look horizontal after flip)
+  geom_vline(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(xintercept = 30),
+    color = "gray0", alpha = 0.7, linetype = "dashed"
+  ) +
+  # Individual cast DCM min/max as vertical lines (will look horizontal after flip)
+  geom_hline(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(yintercept = 0),
+    color = "gray0", alpha = 0.7, linetype = "dashed"
+  ) +
+  # Mean chl line
+  geom_line(
+    data = CTD_NOAA_WHOI_KAUST_model_summary,
+    aes(x = depth, y = mean_chl, color = Region),
+    size = 1
+  ) +
+  coord_flip() +
+  scale_x_reverse() +
+  labs(
+    x = "Depth (m)",
+    y = "Chlorophyll-a (mg m⁻³)",
+    title = "CTD Chlorophyll Profiles with DCM Ranges",
+    fill = "Region",
+    color = "Region"
+  ) +
+  facet_wrap(~ Region, scales = "free_x") +
+  theme_cowplot() +
+  theme(legend.position = "bottom")
+
+
+NOAA_WHOI_KAUST_chl_norm_plot
+###```
+
+
+
+
+```{r}
+CTD <-  CTD_NOAA_WHOI_KAUST_model %>% #replace  CTD_NOAA_WHOI_KAUST_model with CTD_sub if subset
+  dplyr::mutate(
+    depth_f = factor(depth),
+    Region = factor(Region),
+    enso = factor(enso)
+  )
+
+
+#clear global environment
+rm(CTD_NOAA_WHOI_KAUST, CTD_NOAA_WHOI_KAUST_model, CTD_NOAA_WHOI_KAUST_model_summary, your_big_df) #, CTD_subset
+
+
+CTD <- CTD %>%
+  mutate(
+    Ocean = case_when(
+      Region %in% c("North RS", "Central RS", "South RS", "KAUST") ~ "RedSea",
+      Region %in% c("NWHI", "Samoa", "Mariana", "Hawiian", "Equatorial") ~ "Pacific",
+      TRUE ~ "Other"
+    ),
+    Ocean = factor(Ocean)
+  )
+
+
+CTD <- CTD %>%
+  mutate(OceanRegion = interaction(Ocean, Region, sep = "_"))
+
+CTD$date_raw<-CTD$date
+
+CTD$date <- scale(as.numeric(difftime(CTD$date_raw, min(CTD$date_raw), units = "days")))
+
+
+#write.csv(CTD, "CTD.csv")
+
+
+#CTD<-CTD%>%filter(Ocean == "RedSea")
+
+#simplified model, add other stuff later
+andrew_form <- bf(chl_norm ~ 
+                    1 +
+                    Region+
+                    log10_distance+
+               #   s(depth, bs = "cr", k = 15)+ 
+                    s(depth, by =Region, bs = "cr", k = 15)+ 
+                    (1|Ocean:Region:date)+
+                    (1|Ocean:Region:enso),
+                  family = gaussian()) 
+
+#also try
+#sigma ~ s(depth, k = 5) + (1 | Region) #variability in data changes with depth globaly, regional intercept
+#sigma ~ s(depth, k = 5) + s(depth, by = Region, k = 5)
+#sigma ~ s(depth, by = Region, k = 5) #varaibility in data changes with depth regionally
+
+
+#okay this will be the final model, I think adding Ocean and Region is having too much colinearity that I don't want, all the effects of Ocean should be captured in Region. we'll have to calculate the Ocean effect after by averaging the posteriors. going to run on all the data with 5000 iterations, 2500 warmups, max tree depth =13, adpat delta = 0.95
+
+#Ocean:log10_distance R2 0.468812
+
+#Okay I think I'm going to use this as the final model... either this or no Ocean
+
+#okay seems like either just ocean and no Region:log10_distance or Region | OR Ocean and  Region:log10_distance but no Region
+
+#now no Region:log10_distance, but Region and Ocean included R2 0.4487595
+
+#now trying no Ocean and no Region:log10_distance but Region fixed effect R2 0.4484592
+
+#no Region:log10_distance and no Region, but Ocean fixed effect R2 0.4488672
+
+#removing Region:log10_distance and running with just Ocean fixed effect
+
+#Ocean and Region:log10_distance but no Region fixed effect R2 0.4656858
+
+#going back to 10% of data next I try adding Ocean back in with Region:log10_distance. Then I try just Ocean fixed effect, then I try just region fixed effect. Then I try just Ocean and Reigon fixed effect
+
+#R2 0.424181 with Region:log10_distance and 50% of data, I'll remove it
+
+#maybe also worth trying with Ocean fixed effect and no Region fixed effect, the difference between Ocean +Region and no ocean or region is pretty small... so maybe worth keeping them both so that we can explain those parts of the model. 
+
+#will run this model with 50% of data to see if that helps some of the regions be less extreme
+
+#Region without Region:log10_distance R2 = 0.4484338
+
+#adding back Region without Region:log10_distance to see how it does, then I'll try adding Region:log10_distance with 25% of the data
+
+#that made R^2=0.3424763 so k=4 it is!
+
+#first I try this super simplified model with k=3, then I add back in Region fixed effect to see how it does, then I try Region:log10_distance with 25% of the data
+
+#removing Region:log10_distance helped with the fits kinda, made the curves look better but R^2 = 0.4487157, will try with no Region:log10_distance but add back in Region fixed effect... but might also be a lack of data problem,. will try on 25% of the dataset with Region:log10distance
+
+#central red sea is just so much lower than it should be.... going to change chl norm back to a % and see if that helps, if that's not it it's probably jsut a lot of samples from this subset being offshore. before I change the chl norm back though let me try removing the Region:log10_distance and see what that does
+
+#seems like global depth smooth helps improve the model so I will kepp it
+
+#Removing global depth smooth
+
+#now I'll remove Region fixed effect, then I'll remove global depth smooth
+
+#with ocean, R^2 = 0.4657, without ocean R^2 = 0.4650, without region fixed 0.46628, without global depthh 0.451
+
+#now trying with just Region terms, then I'll try removing the Region fixed effect, then the global depth smooth, then I'll see which of the four combinations does the best
+
+#maybe I also try removing the global depth smooth
+
+#going back to keeping it simple, but will add ocean as a fixed effect for the hell of it, will run one with ocean and one without to see if it adds anything
+
+#andrew_form <- bf(
+# chl_norm ~ 1 +
+#    Ocean + Ocean:Region +
+#    log10_distance +
+#    Ocean:Region:log10_distance +      # if you want region slopes nested under ocean
+#    s(depth, k = 4) +
+#    s(depth, by = Region, k = 4) +
+# #   s(depth, by = Ocean, k = 4) +
+#  #  s(depth, by = OceanRegion, k = 4) + #redundent, same as region
+#    (1 | Ocean:Region:date) +
+#    (1 | Ocean:Region:enso),
+#  family = gaussian()
+#)
+
+#okay that actually looked better than I thought it would. but I don't think Ocean is really doing much heavy lifting
+
+#going to try this monstosity now.... let's see how it does, also accidentally changed stuff before saving a new file... oh well. depending on how this goes I might try the formula from one test ago but with Region fixed effect... might also try some other stuff out we'll see
+
+#seems like not having region didn't really help the shape of southern red sea at all and hurt the central red sea curve
+
+#going back to 10% of data and dropping iterations to 1200 with 600 warmups for speed, also going back to adapt delta of 0.9 and max tree depth of 10
+
+#okay I'm aborting this run, dont't think the extra iterations would help here nayway
+
+#next I'll try removing ocean smooth and see what happens but keep everything else the same (except iterations and how chl_norm is calculated and priors), then I'll try the other formulas below
+
+#I should also change how chl_norm is calculated so its just a * of surface chl (/100) and not a percent, will need to also change priors, also reduce iterations for this
+
+#okay so it seems like having ocean and region the way I do is adding colinearity.... it seems like I can always back calculate the ocean effect by averaging the posteriors if I need to, I can also try nesting. I should def add fixed Region effect back in. 
+#here are some options: 
+#andrew_form_v1 <- bf(
+ # chl_norm ~ 1 +
+#    Region +                          # region intercepts (fixed) OR (1|Region)
+#    log10_distance +
+#    Region:log10_distance +           # region-specific linear slope
+#    s(depth, k = 5) +                 # global depth trend
+#    s(depth, by = Region, k = 5) +    # region-specific depth shapes
+#    (1 | Region:date) +
+#    (1 | Region:enso),
+#  family = gaussian()
+#)
+#^ this but maybe remove Region fixed effect because we only care about the depth really
+
+#or
+#andrew_form_v2 <- bf(
+#  chl_norm ~ 1 +
+#    Ocean + Ocean:Region +
+#    log10_distance +
+#    Ocean:Region:log10_distance +      # if you want region slopes nested under ocean
+#    s(depth, k = 5) +
+#    s(depth, by = Ocean, k = 5) +
+#    s(depth, by = Ocean:Region, k = 5) +
+#    (1 | Ocean:Region:date) +
+#    (1 | Ocean:Region:enso),
+#  family = gaussian()
+#)
+
+#^ but again without the Ocean or Ocean:Region fixed effects
+#looking back at the old models, it seems like having Ocean as just a fixed effect and not a smoothed by depth effect helped the model, so maybe i try that later, for now I'll increase iterations and see what happens, with k=4... but it still seems like having ocean in the model is making everything a little weird, hopefully adding more iterations helps
+
+#going to try k=4... then maybe k=5, can also probably increase adapt delta to 0.99, once the model is happy (hopefully with k=4 or k=5) then I can increase the iterations and warmups to like 4000 and 2000 and see how it performs
+
+#removing non smoothed region and ocean effects
+
+#mayve next I try removing the Region and Ocean non smoothed effects.... since I really only care about the changes on a per depth basis
+
+#I've changed to the less informative priors (priors_A) to hopefully let the data do it's own thing a little more, next I try going to adapt_delta of 0.99.... but it still seems like having the Ocean included is making things weird
+
+#for some reason this model made the pacific regions higher than the red sea? going to try k=3, but I think I'll probably just remove Ocean basin, maybe I still try it as a regular fixed effect and remove the smooth
+
+#going to try with k=4 now and priors_B, maybe I also try k=3..... but I feel like the model needs super weak priors and just a low adapt_delta and higher max tree depth
+
+#seems a little choppy... I think the ocean effect is casuing everything to shrink towards it's ocean average, going to add more data (25%) and use priors_B and see if that helps
+
+#going back to priors_C and adapt_delta 0.95 and running max tree deoth of 12
+
+#the model seems to want k=5, gonna drop adapt delta and use weaker priors (priors_B)
+
+#trying with k=4 and Ocean added... think this will be good, last time depth and Region were both k=5 and ocean was k=4..... so maybe i try all k=5 if the k=4 is weird, then I'll drop adapt delta to 0.9, then I'll increase max tree depth to 12
+
+#adding Ocean back, will probably switch back to priors_B at some point too
+
+#running on 10% of data, increasing k, next I'll decrease adapt delta to 0.9, then I'll add back in ocean
+
+#trying priors_C, might have to use a combination of the three, or just priors_B with adapt delta 0.9 and tree depth of 12 or something, and add ocean back in, also going to try k=5 after this on the best set of priors, I'll also go back to just 10% of the data to speed things up
+
+#trying priors_A
+
+#depending on the results of this and if it makes 0m at Southern red sea look normal, I may go back to 10% of the data and run with priors_A and priors_C to see how those do, with no ocean, then depending on how all that looks maybe I add Ocean back in
+
+#adding Ocean in seems to help the model a little bit but increases error and max tree hits, gonna run this model on 25% of the data and see how it goes, then maybe add Ocean back in if 25% of the data doesn't stabilize the model
+
+#Maybe try 25% of the dataset and see if it helps southern red sea
+
+#This is my last run of the night and the fixed Ocean effect didn't seem to do much, so I'm going to add Ocean as a smoothed effect. This might screw everything up, maybe I need like an Ocean:Region thing or something
+
+#adding back Region:log10distance helped the model just a little bit, looks like all regions have a different slope and it doesnt seem to vary by ocean, gonna add ocean too now and see what that does, then maybe I try k=3 again
+
+#it seems like the model wants k=4, adding back in Region:log10_distance for this run, then I'll add back in Ocean
+
+#maybe also add ocean basin back in, it would be interesting to see the groupings by basin in the output
+
+#it like looks pretty good so I'm going to try k=4 but then I'm going to add more data and try this model again, like 25% of data and I'll go ahead and add back in Region:log10_distance 
+
+#gonna increase k to 4 next run, this run I'm going to remove the Region:log10_distance
+
+#trying with priors_B, will remove Region:log10_distance after this maybe if it seems wierd
+
+#scaling didn't seem to fix max tree depth limit, now I'm going to try removing KAUST and Equatorial from the dataframe 
+
+#might want to use raw distance not log10_distance if I'm scaling... also consider using unscaled chl_norm
+
+#also going to try scaling the data and see what happens, maybe also try one with just depth and log10_distance scaled
+
+#andrew suggested k=3 so that's what I'll do, may just have to increase max tree depth like crazy
+
+#for this run I'll probably try centering / normalizing the data, especially the depth and log10_distance, maybe chl_norm too but maybe not because that's what we're predicting
+
+#seems like changing k didn't really do that much, it made the zero depth a little wierd in the southern red sea but that's about it. thi smight be a better more simple fomula for the model..... but it did have more tree depth errors than the k=5 model for some reason, and had a slighly lower r^2 value
+
+#priors_B seem to work pretty good, gonna reduce k to k=4 for this one to hopefully avoid a bit of the weirdness
+
+#that last one was really good. I'm going to change the priors a little more but this is close. will also try with k=4 after that. But this is really close as long as the tree depth limit problem can be fixed
+
+#Gonna make the priors suuuppper wide for this run. 
+
+#the run i just did was on 100% of the data, and it seems like there were some tree depth issues still. going to run this data on unsmoothed casts 10% of the data for a baseline, then I'll tweak the priors and maybe some other things
+
+#this run is going to be the full full model, so lets see how it goes, how long it takes to run and how well it fits the data, code at top to resubset data if needed or bin data if needed, 
+
+#ask andrew about centering the data
+
+#adjust the data so it's * enhancement not % enhancement, this will really help center the data which might help. Like do a /10 or /100 on the enahncement column to get to a 0-10 scale
+
+#plotting ideas
+
+#just a thought, maybe make a plot where you use the full dataframe, and add a column to the dataframe called like upr-lwr and give casts where the max of the cast is shallower than the max of the average cast and the same for if the max was below the average cast, then make a plot where the ones below are one color and the ones above are another
+
+#Maybe also make a plot for the unenhancement data and just look at the raw chl data
+
+#seems like that didn't really do much, I'm gonna run this model on the full dataset smoothed at 10m so see how it does
+
+#seems like changing the intercept prior didn't do much so this time I'll adjust some of the other priors to hopefully reduce data sharing even more. then I guess I'll run on the whole dataset
+
+#doesn't seem like removing the intercept had that big of an effect so I'll add it back now and ask andrew about it. Now I'll adjust the intercept prior and drop it to 0,1 from 0,10
+
+#this and the last run look pretty similar, but this run had a lower R squared so I'll inlude (0+log10_distnace |Region) for now, unless it causes other problems, for this run I'll remove the global intercept and see how that effects the model
+
+#that last run seemed even better than the one before it. now I'll try removing that random effect altogether
+
+#okay doesn't seem like model is too different with or without (1+log10_distance | Region), gonna try (0 + log10_distance | Region) this time
+
+#seems like that made the model more stable, I'll add it back for a run just to have a comparison, going to use the origional priors though as those seemed better, next I'll try a model with (0 + log10_distance | Region), then one with the old priors and no random with log10_distance
+
+#for the follwoing runs I'll use 25% of the availible dataset, going to try redoing some of the random effects, mostly removing Region random effect, will probably need to run the same model but add back in that random effect after this to have a comparable run with 25% of the data, might also try a run with (0 + log10_distance | Region)
+
+#running on the full dataset looks good! will need to increase max tree depth probably to 12 as 25% of runs hit max depth, will probably also need to increase adapt_delta. 
+
+#changing intecept to 0,1 didn't really seem to change anything except causing more divergence, will set at 0,10 and run on the whole dataset to test perfrmance, then maybe increase adapt delta to 0.99 or max tree depth to 12
+
+#last run looked okay, gonna change intercept to 0,1 and see what happens
+
+#changed "student_t(3, 0, 3)", class = "sds" and "student_t(3, 0, 2)", class = "sd2" to "student_t(3, 0, 5)", class = "sds" and "student_t(3, 0, 5)", class = "sd2", to allow for more region level variation, if this looks good I'll try changing the intercept to 0,1 or 0,5 then use whatever the best model is on the full dataset smoothed at 10m. It also seems like 0.95 still had some divergence so maybe will need to increase that to 0.99
+
+#inreasing adapt_delta to 0.95, if this is good then I'll adjust the priors slighly so they don't shrink too much toward the global mean, then I'll try running on all the data smoothed to 10m, might also try setting the intecept to (0,1) or (0.5) to contrain the model a teeny bit
+
+#testing on 50% of data and shrinking prioors slighlty from intercept |(0,20) to Intercept (0,10), next I'll increase adapt delta to 0.95, then increase tree depth to 12
+
+#testing on 50% of data
+
+#model looked pretty good but hit some divergence problems, gonna increase adapt_delta and then probably run the model on 50% of the dataset
+
+#okay seems like I do need the more informative priors to not hit max tree depth, but the results I was getting were about half of what I expected so I'm going to adjust them a little bit
+
+#seemed like adding the priors really helped! however I did also change the backend to cmdstanr which shouldn't make that big of a difference but just to see I'll remove the priors and run with the new backend
+
+#last run I fully changed the model, I changed to a student distribution, added priors, had tree depth at 15 and centred and normalized log10_distance and depth, for this run I've just added priors with the old model, I've also added cmdstan as the backend
+
+#okay going to try with 10% of the data and a max tree depth of 15, expecting sampling to take a while
+
+#okay for this run I've reduced max tree depth back to 10 and I've increased sample size to 50% of the data to see if that helps, next Ill try max tree depth of 12 with 50% of the data then maybe 10% of the data with max tree depth 0f 15
+
+#okay, makign k smaller didnt seem to do anything, now I'll increase max tree depth and see if that does anything, I'm going to go straight for 12 then to 15
+
+#for this run I've reduced K, next I'll try increasing max tree depth, smoothing over 5m and 10m doesn't seem to change the model that much but does increase R^2, so I think it's worth using this smoothed approach to at least test some different parameters, I may even try increasing max tree depth to 15 with this smooth
+
+#smoothing over 5m did not seem to help the max tree depth problem... I'll try a smooth of 10 and see if that does anything, then reduce k to k=4 and see what happens, finally I'll start increasing max tree depth limit
+
+#actually before i increase max tree depth, I'm going to try to average over 5m depths, maybe that will help in some way
+
+#this didn't seem to help much with the max tree depth problem... gonna try to bring max tree depth to 14 with a gaussian distribution
+
+#gonna run this one on a max tree depth of 10 and switch to a student t to see if that helps the max tree depth
+
+#adapt_Delta of 0.8 seems okay from an rhat standpoint, but there was still a max tree depth issue, will increase max tree depth to 12 to see if anything chnages, next time I may increase the number of iterations too?
+
+#back to 10% subset to test a lower adapt delta, will try 0.8
+
+#if this formula is good then next run will be this with the full dataset, if not I'll go back to the formula without Reigon:enso and run on the full dataset, then after that I'll tweak the adapt_delta a little more or max tree depth if needed to make sure I don't get that warning about max tree limit hit
+
+#I've added back in (1|Region:enso), but I saw from earlier the Region:enso random effect actually made the model worse, so maybe I can exclude it because of all the issues with the data but I guess we'll see,
+
+#okay seems like increasing sample size helped the northern red sea but made some other regions a little wierd, so maybe the full dataset will be fine with this formula, gonna try adding a random effect for region by enso too for the next run
+
+#for the full model, should probably have log10_distance by region and enso by region as random effects, but talk to andrew about it
+
+#this run is to test whether the low sample size is what made the northern red sea results weird on an older run based on log10_distance as a random slope
+
+#maybe the tree depth issue will be solved on the full dataset, will def need an adapt delta of at least 0.99 maybe increase even more, based on the run from 20251016 compared to 20151019, adapt deplta of 0.99 should be okay witht the full dataset, if it's  not incresing max tree depth to 12 with adapt delta at 0.99 with the full dataset should be okay
+
+#okay this time Ive reduced tree depth back to 10 so I can test a largest subset of the origional data, 25%
+
+#for this run I've increased tree depth from 10 to 12, next I'll try increasing to 14 or 15
+
+
+#now I've increased adapt_delta to 0.99 next I'll increase max tree depth to 12
+
+#for this run I'm running the same model formula I've done, but I'm improving the adapt_delta from 0.9 to 0.95
+
+#the (1+log10_distance | Region) seems to have improved the model a bit, but it also seems like it made the nortern red sea weird... it made all the values way to low, so I'll remove it for now but maybe add it back later if there's a good way i can fix it
+
+#This run I've added + (1 + log10_distance | Region) to hopefully account for the effects of the regional differences in distance from shore had to change (1|Region/date) to (1|Region:date)
+
+#+(1|Region:enso) did not significanlty impact the model so I'll remove it for now
+
+#I've added (1|Region:enso) to account for the effects of enso, next I'll try adding (1+log10_distance|Region) to account for regional differences in the distance from shore effect but allowing for shirnkage toward the global mean for regions with few values
+
+#adding Region:log10_distance fixed effect seems to improve the model, but it makes the output for KAUST look super weird, probably because it was just casts super close to shore (2km), maybe I should pool the KAUST casts with central red sea? for now I'll remove Region:log10_distance but I might want to add it back later
+
+#doen't seem like esno really had an effect based on 20251024_2 but maybe that's because of the subsetting? we also only have neutral and la nina years represented and not even in all regions so maybe I just leave it out for now and add it back as a random effect later if I need it
+
+#increasing to k=6 improved R^2 ever so slightly, so probably okay to run k=5, maybe I try k=6 again later after adding more parameters
+
+#changed back to gaussian (central limit theorom might save me)
+#just modeling depth, depth by region, and region
+#add Region:enso, log10_distance, and maybe Region:log10_distance later
+#add (1|Region/date) later as a random effect for each date
+
+#could change depth to depth_f #changed gaussian to student to fix tails #removed #enso from this model
+#was origionally run as Gaussian with k=5
+
+
+
+priors_old <- c(
+  set_prior("normal(0, 10)", class = "Intercept"), #
+  set_prior("normal(0, 2)", class = "b"),                # fixed effects (Region dummies + log10_distance)
+  set_prior("student_t(3, 0, 5)", class = "sds"),        # smooth term SDs (s(depth,...))
+  set_prior("student_t(3, 0, 5)", class = "sd"),         # group-level SDs (Region, Region:date, Region:enso)
+#  set_prior("lkj(2)", class = "cor"),                    # correlation prior for group-level effects
+  set_prior("student_t(3, 0, 5)", class = "sigma")       # residual
+)
+
+
+priors <- c(
+  set_prior("normal(0, 600)", class = "Intercept"), #
+  set_prior("normal(0, 200)", class = "b"),                # fixed effects (Region dummies + log10_distance)
+  set_prior("student_t(3, 0, 2000)", class = "sds"),        # smooth term SDs (s(depth,...))
+  set_prior("student_t(3, 0, 200)", class = "sd"),         # group-level SDs (Region, Region:date, Region:enso)
+#  set_prior("lkj(2)", class = "cor"),                    # correlation prior for group-level effects
+  set_prior("student_t(3, 0, 200)", class = "sigma")       # residual
+)
+
+
+
+#new Priors (tighter priors) after removing (1+log10_distance | Region) from the model
+priors2 <- c(
+  set_prior("normal(0, 5)", class = "Intercept"),
+  set_prior("normal(0, 2)", class = "b"),          # fixed effects
+  set_prior("student_t(3, 0, 1)", class = "sds"),  # smooth SDs, smaller to prevent blowups
+  set_prior("student_t(3, 0, 2)", class = "sd"),   # group-level SDs (Region:date, Region:enso)
+#  set_prior("lkj(2)", class = "cor"),         # only need if I have (1+log10_distance | Region) or something similar
+  set_prior("student_t(3, 0, 5)", class = "sigma")
+)
+
+#weak priors
+#weakly informed (less data dominant)
+priors_A <- c(
+  prior(student_t(3, 0, 10), class = "Intercept"),
+  prior(student_t(3, 0, 10), class = "b"),
+  prior(student_t(3, 0, 10), class = "b", coef = "log10_distance"),
+  prior(student_t(3, 0, 1), class = "sds"), # or (3,0,2),
+#  prior(student_t(3, 0, 0.5), class = "sds", dpar = "sigma"), #use if using varying sigma
+  prior(student_t(3, 0, 1),  class = "sd")
+  # no nu prior needed for gaussian
+)
+
+#moderately informed
+priors_B <- c(
+  prior(normal(0, 350),  class = "Intercept"),
+
+  # fixed effects
+  prior(normal(0, 120),  class = "b"),
+  prior(normal(0, 30),   class = "b", coef = "log10_distance"),
+  prior(normal(0, 30),   class = "b", coef = "OceanRedSea"), #Red Sea as reference ocean
+
+  # smooth penalties
+  prior(student_t(3, 0, 30), class = "sds"),
+
+  # varying slopes/intercepts
+  prior(student_t(3, 0, 20), class = "sd"),                  # most group-level SDs
+#  prior(student_t(3, 0, 12), class = "sd", group = "Region", coef = "log10_distance"), #dont need unles I have (1+log10_distance|Region) or similar
+
+ # prior(lkj(2), class = "cor"),                              # slight shrink on correlations
+
+  # residual
+  prior(student_t(3, 0, 300), class = "sigma")
+)
+
+
+#conservative (strong shrinkage) 
+priors_C <- c(
+  prior(normal(0, 180),  class = "Intercept"),
+
+  # fixed effects
+  prior(normal(0, 60),   class = "b"),
+  prior(normal(0, 15),   class = "b", coef = "log10_distance"),
+  prior(normal(0, 15),   class = "b", coef = "OceanRedSea"),
+
+  # smooth penalties
+  prior(student_t(3, 0, 15), class = "sds"),
+
+  # varying slopes/intercepts - stronger shrinkage, useful when many group levels
+  prior(student_t(3, 0, 8),  class = "sd"),
+ # prior(student_t(3, 0, 5),  class = "sd", group = "Region", coef = "log10_distance"),
+
+ # prior(lkj(2), class = "cor"),
+
+  # residual
+  prior(student_t(3, 0, 180), class = "sigma")
+)
+
+
+
+#clean up dataframe
+CTD <- CTD %>% select(chl_norm,  Region, depth, date, log10_distance, enso, Ocean, OceanRegion) #log10_distance, enso, depth_f,, Ocean, cast_id, date
+
+# run this first to see the exact parameter names
+#get_prior(andrew_form, data = CTD)
+
+
+
+
+#Scaled df
+#code to scale data
+
+#CTD_scaled <- CTD %>%
+#  mutate(
+#    chl_norm_s = scale(chl_norm)[, 1],
+#    depth_s = scale(depth)[, 1],
+#    log10_distance_s = scale(log10_distance)[, 1]
+#  )
+
+
+#free unused memory 
+gc()
+
+
+#use cmdstanr backend
+options(brms.backend = "cmdstanr")
+
+
+#update priors because we added "sigma ~ s(depth, k = 5)" to formula and changed distribution to student()
+#priors_sigma_depth <- priors_A %>%
+#  update(                          # keep your existing priors, but add nu prior
+#    prior(exponential(1), class = "nu")   # example: favors heavier tails moderately
+#  )
+
+
+
+
+
+
+#priors <- c(
+#  prior(normal(0, 1), class = "b"),
+#  prior(student_t(3, 0, 1), class = "Intercept"),
+#  prior(student_t(3, 0, 0.5), class = "sd"),
+#  prior(student_t(3, 0, 0.5), class = "sds"),
+#  prior(student_t(3, 0, 1), class = "sigma")
+#)
+
+
+###set priors based on the data
+sd_y  <- sd(CTD$chl_norm, na.rm = TRUE)
+mean_y <- mean(CTD$chl_norm, na.rm = TRUE)
+sd_y; mean_y
+
+
+#from full dataset
+#sd 2.724
+#mean 0.7324712
+
+
+priors <- c(
+  ## Fixed effects
+  # Intercept: around global mean, with generous uncertainty
+  prior(student_t(3, 0.73, 2 * 2.724), class = "Intercept"),
+  # Slopes (Region contrasts + log10_distance):
+  # usually won't move chl_norm by more than ~5 units
+  prior(normal(0, 2), class = "b"),
+
+  ## Random intercepts (Ocean:Region:date, Ocean:Region:enso)
+  # Moderate between-group variability, usually < ~5 units
+  prior(student_t(3, 0, 1.5), class = "sd"),
+
+  ## Smooth wiggliness (region-specific depth smooths)
+  # Controls how much each Region-depth curve can deviate
+  prior(student_t(3, 0, 1.5), class = "sds"),
+
+  ## Residual SD
+  # Residual variation on the order of observed sd_y
+  prior(student_t(3, 0, 2.5), class = "sigma")
+)
+
+#priors with stronger narrowing of CIs
+
+priors_tighter <- c(
+  prior(student_t(3, 0.67, 2 * 2.425), class = "Intercept"),
+  prior(normal(0, 1.5), class = "b"),
+  prior(student_t(3, 0, 1), class = "sd"),
+  prior(student_t(3, 0, 1), class = "sds"),
+  prior(student_t(3, 0, 2), class = "sigma")
+)
+
+priors_tightest <- c(
+  prior(student_t(3, 0.67, 2 * 2.425), class = "Intercept"),
+  prior(normal(0, 1.5), class = "b"),
+  prior(student_t(3, 0, 0.75), class = "sd"),
+  prior(student_t(3, 0, 0.75), class = "sds"),
+  prior(student_t(3, 0, 2), class = "sigma")
+)
+
+
+#code to use single core no parallel
+
+fit_fixed_inter <- brm(
+  andrew_form,
+  data = CTD,
+  prior = priors,  # remove to use default priors, custum priors seem beter for avoiding max tree depth
+  cores = 4,  #let it set cores automatically or choose number of cores
+ chains = 4, #only using 2 chains to test model, increase to 4 or more for full run
+  iter = 5000, #5000 for full run
+ warmup = 1000, #2500 for full run
+  threads = threading(2), #add threads (let a single chain run on multiple cores, here two cores per chain)
+  refresh = 50,
+backend = "cmdstanr",
+  save_pars = save_pars(all = TRUE),
+  file = "C:/Users/gagem/OneDrive/Desktop/brms_fits/my_model_50_FINAL",
+  control = list(adapt_delta = 0.97, max_treedepth = 14) #0.95 and 13 for full run OR 0.97 and 15?
+)
+#based on previous tests, it seemed like adapt_delta of 0.90 was okay in terms of rhat, so for the next test I'll reduce the sample size back to 10%, use the best model from this run, and reduce adapt delta to 0.8 to see if max tree depth problem can be solved. Might need to do an adapt delta of like 0.8 or 0.9 and max tree depth of 12 but we'll see
+
+#increase adapt_delta to 0.95 and MAYBE 0.99 before increasing max_treedepth, then increase max_treedepth slowly, maybe try 12 next
+#maybe increase adapt_delta to 0.95 and max_treedepth to 15 if I run into problems, but this should be fine for testing different models
+```
+#0 divergences
+#0 / 4000 max tree depth hit
+#mean chain time _913894.5_ seconds
+#total execution time _941756.0_ seconds
+
+```{r}
+save(fit_fixed_inter, file = "C:/Users/gagem/OneDrive/Desktop/brms_fits/fit_brms_model_50_FINAL.RData")
+```
+
+
+```{r}
+#plot(conditional_effects(fit_fixed_inter, "log10_distance"))
+
+#plot(conditional_effects(fit_fixed_inter, "Region:enso"))
+
+plot(conditional_effects(fit_fixed_inter))
+```
+
+```{r}
+plot(conditional_smooths(fit_fixed_inter), ask = FALSE)
+```
+
+
+
+```{r}
+bayes_R2(fit_fixed_inter, summary = TRUE, ndraws = 500)
+```
+
+```{r}
+#edf(fit_fixed_inter)
+```
+
+
+```{r}
+summary(fit_fixed_inter)
+
+#bayes_R2(fit_fixed_inter)         # if relevant
+#plot(fit_fixed_inter)             # traceplots and densities
+#mcmc_rhat(rstan::summary(fit_fixed_inter)$summary)  # or use posterior::rhat
+#neff_ratio <- posterior::neff_ratio(fit_fixed_inter) # effective sample sizes
+```
+
+
+
+
+```{r}
+#cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+#install_cmdstan()
+```
+
+```{r}
+#cmdstanr::cmdstan_path()
+```
+
+
+#plot median with 95% credible interval
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+fit <- fit_fixed_inter
+
+depth_seq <- seq(min(CTD$depth), max(CTD$depth), by = 1)
+ld_mean <- mean(CTD$log10_distance, na.rm = TRUE)
+
+pred_newdata <- expand.grid(
+  Region = levels(CTD$Region),
+  depth  = depth_seq,
+  log10_distance = ld_mean,
+  stringsAsFactors = FALSE
+)
+
+# Region-level curves, excluding date & enso REs
+ep <- posterior_epred(
+  fit,
+  newdata = pred_newdata,
+  re_formula = ~ (1 | Region)
+)
+
+# Summaries
+pred_summary <- apply(ep, 2, function(x) {
+  c(
+    median = median(x),
+    lwr = quantile(x, 0.025),
+    upr = quantile(x, 0.975)
+  )
+}) %>% t() %>% as.data.frame() %>%
+  bind_cols(pred_newdata)
+
+pred_summary <- pred_summary %>%
+  rename(
+    lwr = `lwr.2.5%`,
+    upr = `upr.97.5%`
+  )
+
+# Plot
+model_plot<-ggplot(pred_summary, aes(x = depth, y = median, color = Region)) +
+  geom_ribbon(
+    aes(ymin = lwr , ymax = upr, fill = Region),
+    alpha = 0.18,
+    colour = NA
+  )+
+  coord_flip()+
+  scale_x_reverse()+
+  facet_wrap(~ Region, scales = "free_x" ) +
+  geom_line(size = 1) +
+  theme_minimal()
+
+model_plot
+```
+
+```{r}
+ggsave("model_plot_sup.pdf", plot =model_plot, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+```{r}
+ggsave("model_plot_sup.png", plot =model_plot, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+
+
+
+#median plotted with 95% confidence interval (assuming normal distribution)
+```{r}
+fit <- fit_fixed_inter
+
+depth_seq <- seq(min(CTD$depth), max(CTD$depth), by = 1)
+ld_mean <- mean(CTD$log10_distance, na.rm = TRUE)
+
+pred_newdata <- expand.grid(
+  Region = levels(CTD$Region),
+  depth  = depth_seq,
+  log10_distance = ld_mean,
+  stringsAsFactors = FALSE
+)
+
+# Region-level curves, excluding date & enso REs
+ep <- posterior_epred(
+  fit,
+  newdata = pred_newdata,
+  re_formula = ~ (1 | Region)
+)
+
+# Summaries
+pred_summary <- apply(ep, 2, function(x) {
+  c(
+    median = median(x),
+    lwr = mean(x) - 1.96 * sd(x),
+upr = mean(x) + 1.96 * sd(x)
+  )
+}) %>% t() %>% as.data.frame() %>%
+  bind_cols(pred_newdata)
+
+pred_summary <- pred_summary %>%
+  rename(
+    lwr = `lwr`,
+    upr = `upr`
+  )
+
+# Plot
+ggplot(pred_summary, aes(x = depth, y = median, color = Region)) +
+  geom_ribbon(
+    aes(ymin = lwr , ymax = upr, fill = Region),
+    alpha = 0.18,
+    colour = NA
+  )+
+  coord_flip()+
+  scale_x_reverse()+
+  facet_wrap(~ Region, scales = "free_x" ) +
+  geom_line(size = 1) +
+  theme_minimal()
+
+```
+
+
+
+library(posterior)
+library(HDInterval)
+
+fit <- fit_fixed_inter
+
+depth_seq <- seq(min(CTD$depth), max(CTD$depth), by = 1)
+ld_mean <- mean(CTD$log10_distance, na.rm = TRUE)
+
+pred_newdata <- expand.grid(
+  Region = levels(CTD$Region),
+  depth  = depth_seq,
+  log10_distance = ld_mean,
+  stringsAsFactors = FALSE
+)
+
+# Region-level curves, excluding date & enso REs
+ep <- posterior_epred(
+  fit,
+  newdata = pred_newdata,
+  re_formula = ~ (1 | Region)
+)
+
+# Summaries for each prediction column
+pred_summary <- apply(ep, 2, function(x) {
+  
+  hdi_vals <- hdi(x, credMass = 0.95)
+
+  c(
+    mean   = mean(x),
+    median = median(x),
+    sd     = sd(x),
+    se     = sd(x) / sqrt(length(x)),
+    
+    # quantile CI
+    q2.5   = quantile(x, 0.025),
+    q97.5  = quantile(x, 0.975),
+
+    # HDI CI
+    hdi_lwr = hdi_vals[1],
+    hdi_upr = hdi_vals[2],
+
+    # mean ± SD
+    sd_lwr = mean(x) - sd(x),
+    sd_upr = mean(x) + sd(x),
+
+    # mean ± 1.96 SD
+    norm_lwr = mean(x) - 1.96 * sd(x),
+    norm_upr = mean(x) + 1.96 * sd(x)
+  )
+}) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  bind_cols(pred_newdata)
+
+pred_summary <- pred_summary %>%
+  rename(
+    q2.5 = `q2.5.2.5%`,
+    q97.5 = `q97.5.97.5%`
+  )
+
+# Plot
+ggplot(pred_summary, aes(x = depth, y = median, color = Region)) +
+  geom_ribbon(
+    aes(ymin = hdi_lwr , ymax = hdi_upr, fill = Region),
+    alpha = 0.18,
+    colour = NA
+  )+
+  coord_flip()+
+  scale_x_reverse()+
+  facet_wrap(~ Region, scales = "free_x" ) +
+  geom_line(size = 1) +
+  theme_minimal()+
+  ggtitle("HDI CI")
+
+# Plot
+ggplot(pred_summary, aes(x = depth, y = mean, color = Region)) +
+  geom_ribbon(
+    aes(ymin = sd_lwr , ymax = sd_upr, fill = Region),
+    alpha = 0.18,
+    colour = NA
+  )+
+  coord_flip()+
+  scale_x_reverse()+
+  facet_wrap(~ Region, scales = "free_x" ) +
+  geom_line(size = 1) +
+  theme_minimal()+
+  ggtitle("mean +/- sd")
+
+# Plot
+ggplot(pred_summary, aes(x = depth, y = mean, color = Region)) +
+  geom_ribbon(
+    aes(ymin = norm_lwr , ymax = norm_upr, fill = Region),
+    alpha = 0.18,
+    colour = NA
+  )+
+  coord_flip()+
+  scale_x_reverse()+
+  facet_wrap(~ Region, scales = "free_x" ) +
+  geom_line(size = 1) +
+  theme_minimal()+
+  ggtitle("mean +/- 1.96*sd")
+
+# Plot
+ggplot(pred_summary, aes(x = depth, y = median, color = Region)) +
+  geom_ribbon(
+    aes(ymin = q2.5 , ymax = q97.5, fill = Region),
+    alpha = 0.18,
+    colour = NA
+  )+
+  coord_flip()+
+  scale_x_reverse()+
+  facet_wrap(~ Region, scales = "free_x" ) +
+  geom_line(size = 1) +
+  theme_minimal()+
+  ggtitle("medain & 95% quantiles")
+
+
+
+
+#new try at plotting including random effects
+
+# ============================================================
+# 1. Build prediction grid using only REAL RE combinations
+# ============================================================
+
+library(dplyr)
+library(tidyr)
+library(tidybayes)
+library(ggplot2)
+
+# Depth sequence
+depth_seq <- seq(min(CTD$depth), max(CTD$depth), by = 1)
+
+# Representative log10 distance
+ld_mean <- mean(CTD$log10_distance, na.rm = TRUE)
+
+# For each Region, collect only the Ocean/enso/date combinations that *actually exist*
+newdata_list <- lapply(split(CTD, CTD$Region), function(df_region) {
+
+  real_re <- df_region %>%
+    select(Ocean, enso, date) %>%
+    distinct()
+
+  expand.grid(
+    Region = unique(df_region$Region),
+    depth  = depth_seq,
+    log10_distance = ld_mean,
+    Ocean = real_re$Ocean,
+    enso  = real_re$enso,
+    date  = real_re$date,
+    stringsAsFactors = FALSE
+  )
+})
+
+newdata <- bind_rows(newdata_list)
+
+
+# ============================================================
+# 2. Draw posterior expected values INCLUDING random effects
+# ============================================================
+
+draws <- add_epred_draws(
+  fit,
+  newdata = newdata,
+  re_formula = NULL        # <-- include all REs
+)
+
+
+# ============================================================
+# 3. Summarize posterior draws to median + 95% CI
+# ============================================================
+
+pred_summary <- draws %>%
+  group_by(Region, depth) %>%
+  summarise(
+    median = median(.epred),
+    lwr    = quantile(.epred, 0.025),
+    upr    = quantile(.epred, 0.975),
+    .groups = "drop"
+  )
+
+
+# ============================================================
+# 4. Plot clean Region × depth predicted curves
+# ============================================================
+
+ggplot(pred_summary, aes(x = depth, y = median, color = Region)) +
+  geom_ribbon(
+    aes(ymin = lwr, ymax = upr, fill = Region),
+    alpha = 0.18, colour = NA
+  ) +
+  geom_line(size = 1) +
+  scale_x_reverse() +                      # optional if deeper = down
+  theme_minimal() +
+  labs(
+    x = "Depth (m)",
+    y = "Predicted chl_norm",
+    title = "Posterior expected chlorophyll profile by Region (with REs)"
+  )
+
+
+
+
+#another test
+
+library(dplyr)
+library(tidyr)
+library(tidybayes)
+
+fit <- fit_fixed_inter   # or fit_varying
+
+# Depth sequence
+depth_seq <- seq(min(CTD$depth), max(CTD$depth), by = 1)
+
+# Mean log10 distance (or choose your own)
+ld_mean <- mean(CTD$log10_distance, na.rm = TRUE)
+
+# ---- 1. Build newdata by USING ONLY real RE combinations per Region ----
+
+newdata_list <- lapply(split(CTD, CTD$Region), function(df_region) {
+
+  # unique RE combinations that actually exist in this Region
+  real_re <- df_region %>%
+    select(Ocean, enso, date) %>%
+    distinct()
+
+  # expand depth × actual RE levels for this region
+  expand.grid(
+    Region = unique(df_region$Region),
+    depth  = depth_seq,
+    log10_distance = ld_mean,
+    Ocean = real_re$Ocean,
+    enso  = real_re$enso,
+    date  = real_re$date,
+    stringsAsFactors = FALSE
+  )
+})
+
+newdata <- bind_rows(newdata_list)
+
+# ---- 2. Get posterior expected mean INCLUDING random effects ----
+ep <- posterior_epred(
+  fit,
+  newdata = newdata,
+  re_formula = NULL    # <-- include REs
+)
+
+# ---- 3. Summarise across posterior draws ----
+pred_summary <- ep %>%
+  as_draws_matrix() %>%
+  as.data.frame() %>%
+  bind_cols(newdata) %>%
+  # summarise by Region × depth (averaging over RE levels)
+  group_by(Region, depth) %>%
+  summarise(
+    mean   = mean(V1),
+    median = median(V1),
+    lwr    = quantile(V1, 0.025),
+    upr    = quantile(V1, 0.975),
+    .groups = "drop"
+  )
+
+head(pred_summary)
+
+library(ggplot2)
+
+ggplot(pred_summary, aes(x = depth, y = median, color = Region)) +
+  geom_ribbon(aes(ymin = lwr, ymax = upr, fill = Region), alpha = 0.15, colour = NA) +
+  geom_line(size = 1) +
+  theme_minimal() +
+  labs(y = "Predicted chl_norm", x = "Depth")
+
+
+
+
+
+```{r}
+# choose a fit: fit_fixed_inter or fit_varying
+fit <- fit_fixed_inter   # or fit_varying
+
+# prepare newdata grid -- set log10_distance to its mean (or any value you choose)
+ld_mean <- mean(CTD$log10_distance, na.rm = TRUE)
+enso_levels <- levels(CTD$enso)  # choose enso level(s) to predict for
+Region <- c("Central RS", "North RS", "South RS")
+
+# create grid
+newdata <- expand.grid(
+  Region = levels(CTD$Region), #Region #levels(CTD$Region)
+  depth  = seq(min(CTD$depth), max(CTD$depth), by = 1),  # numeric sequence
+  log10_distance = 0, #could change to ld_mean
+#  enso = enso_levels,
+# Ocean = levels(CTD$Ocean),
+#  date = first(unique(CTD$date)),  #re_formula = NA in posterior_epred() means we don't need date
+  stringsAsFactors = FALSE
+)
+
+#add one representative date and cast
+#newdata$cast_id <- unique(CTD$cast_id)[1]
+#newdata$date <- unique(CTD$date)[1]
+
+
+# if using the varying-depth model use depth_c instead:
+# newdata <- expand.grid(Region = levels(CTD$Region), depth_c = seq(min(CTD$depth), max(CTD$depth), by=1) - mean(CTD$depth), ...)
+
+# get posterior expected values (epred) and summarise
+epreds <- posterior_epred(fit, newdata = newdata, re_formula = NA)   # matrix draws x rows #re_formula ignores date ad just predict depth by region
+
+dim(epreds) 
+
+library(dplyr)
+library(tidyr)
+
+pred_summary <- as.data.frame(t(apply(epreds, 2, function(x) {
+  c(mean   = mean(x),
+    median = median(x),
+    lwr    = quantile(x, 0.025),
+    upr    = quantile(x, 0.975))
+}))) %>%
+  bind_cols(newdata)
+
+# view results per Region × depth
+head(pred_summary)
+```
+
+
+
+
+
+```{r}
+#epreds <- posterior_epred(fit_fixed_inter, newdata = newdata)
+
+#dim(epreds)  # draws x nrow(newdata)
+```
+
+```{r}
+pred_summary <- as.data.frame(t(apply(epreds, 2, function(x) {
+  c(
+    mean   = mean(x),
+    median = median(x),
+    lwr    = quantile(x, 0.025),
+    upr    = quantile(x, 0.975)
+  )
+})))
+
+# explicitly set column names
+colnames(pred_summary) <- c("mean", "median", "lwr", "upr")
+
+
+# add the newdata columns
+pred_summary <- cbind(newdata, pred_summary)
+
+# check
+head(pred_summary)
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(pred_summary, aes(x = depth, y = Region, fill = mean)) +
+  geom_tile() +
+#  facet_wrap(~ Region) +
+  scale_fill_viridis_c(name = "chl_norm\n(mean)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+```{r}
+library(cowplot)
+
+model_output_plot1<-ggplot(pred_summary , aes(x = as.numeric(as.character(depth)), 
+                         y = mean, 
+                         color = Region)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = lwr, ymax = upr, fill = Region), alpha = 0.2, color = NA) +
+  coord_flip()+
+  scale_x_reverse()+
+  facet_wrap(~ Region, scales = "free_x" ) +
+  labs(x = "Depth (m)", y = "Predicted chl_norm") +
+  theme_minimal()+  #try theme_cowplot too
+  theme(legend.position = "bottom")
+
+model_output_plot1
+```
+
+```{r}
+ggsave("model_output_plot1.pdf", plot =model_output_plot1, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+```{r}
+ggsave("model_output_plot1.png", plot =model_output_plot1, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+
+```{r}
+# Raw posterior draws
+post_draws <- posterior_samples(fit_fixed_inter)
+
+# look at the first few rows
+head(post_draws)
+```
+
+```{r}
+# sample 1,000 rows from your dataset
+#set.seed(123)
+CTD_sub <- CTD[sample(nrow(CTD), 1000), ] #set to 10000 from 1000
+
+epreds_sub <- posterior_epred(fit_fixed_inter, newdata = CTD_sub)
+# dimensions: draws x observations
+dim(epreds_sub)    # e.g., 4000 draws x 266391 observations
+
+# look at first few draws for the first 5 observations
+epreds_sub[1:5, 1:5]
+```
+
+```{r}
+#summary(fit_fixed_inter)
+```
+
+```{r}
+library(bayesplot)
+
+# basic posterior predictive check
+pp_check(fit_fixed_inter)          # compares observed vs simulated distributions
+
+# overlay density
+pp_check(fit_fixed_inter, type = "dens_overlay")
+```
+
+```{r}
+# residuals = observed - posterior mean
+#resid_mean <- residuals(fit_fixed_inter, summary = TRUE)$Estimate
+
+#use subset to speed this up
+# choose a random sample of rows
+#set.seed(123)
+# posterior predicted mean for subset
+epreds_sub <- posterior_epred(fit_fixed_inter, newdata = CTD_sub)
+pred_mean <- colMeans(epreds_sub)
+
+# residuals = observed - predicted mean
+resid_mean <- CTD_sub$chl_norm - pred_mean
+```
+
+```{r}
+# basic residual plot
+#plot(epreds_sub, resid,
+#     xlab = "Fitted values",
+#     ylab = "Residuals",
+#     main = "Residuals vs Fitted")
+#abline(h = 0, col = "red")
+```
+
+
+```{r}
+# histogram
+hist(resid_mean, breaks = 50, main = "Residuals Histogram", xlab = "Residuals")
+
+# Q-Q plot
+qqnorm(resid_mean)
+qqline(resid_mean, col = "red")
+```
+
+```{r}
+#plot(CTD$depth, resid_mean, xlab = "Depth", ylab = "Residuals")
+#abline(h = 0, col = "red")
+
+#plot(CTD$log10_distance, resid_mean, xlab = "log10_distance", ylab = "Residuals")
+#abline(h = 0, col = "red")
+```
+
+```{r}
+#pp_check(fit_fixed_inter, type = "stat_grouped", group = "Region")
+```
+
+```{r}
+library(tidybayes)
+library(ggplot2)
+library(dplyr)
+library(modelr)
+
+# 1. Get posterior draws for each combination of depth_f and Region
+posterior_draws_df <- CTD %>%
+  data_grid(Region, 
+            depth, 
+           log10_distance = 0, #mean(log10_distance)
+ #           enso = "neutral", 
+  #          date, 
+              Ocean
+   #         cast_id
+            ) %>%  # set log10_distance and enso to reference
+  add_fitted_draws(fit_fixed_inter, n = 1000, re_formula = NA)  # n can be adjusted #was 10000
+
+# 2. Summarize draws to get median and credible intervals
+posterior_summary <- posterior_draws_df %>%
+  group_by(Region, depth) %>%
+  summarise(
+    median_chl = median(.value),
+    lower_ci = quantile(.value, 0.025),
+    upper_ci = quantile(.value, 0.975),
+    .groups = "drop"
+  )
+
+# 3. Plot
+ggplot(posterior_summary, aes(x = as.numeric(as.character(depth)), y = median_chl )) +
+  geom_line(color = "blue") +
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.2, fill = "blue") +
+  coord_flip()+
+  scale_x_reverse() +  # CTD-style: depth increases downward
+  facet_wrap(~Region, scales = "free_x") +
+  labs(
+    x = "Normalized Chlorophyll (%)",
+    y = "Depth (m)",
+    title = "Posterior predicted chl_norm vs Depth by Region"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+#### PACKAGES & SETUP ----
+library(brms)
+library(posterior)
+library(bayesplot)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(purrr)
+library(forcats)
+library(scales)
+
+# optional for nicer themes
+# library(cowplot) 
+
+#### USER SETTINGS ----
+fit <- fit_fixed_inter     # your model
+data <- CTD                # your data frame
+depth_var <- "depth"       # name of depth column
+region_var <- "Region"
+distance_var <- "log10_distance"
+
+# prediction grid settings
+depth_by <- 1              # 1 m resolution (you used this above)
+depth_seq <- seq(min(data[[depth_var]], na.rm = TRUE),
+                 max(data[[depth_var]], na.rm = TRUE),
+                 by = depth_by)
+
+
+# number of posterior draws to use (practical tradeoff)
+n_draws_to_use <- 1000     # use 2000 draws by default (adjust if memory allows) set to 5000
+
+# set log10_distance to mean (as you used earlier)
+ld_mean <- mean(data[[distance_var]], na.rm = TRUE)
+
+#### 1) BUILD prediction newdata ----
+newdata <- expand.grid(
+  Region = levels(data[[region_var]]), #Region #levels(data[[region_var]])
+  depth = depth_seq,
+  log10_distance = 0, #ld_mean
+  stringsAsFactors = FALSE
+) %>%
+  arrange(Region, depth)
+
+#### 2) GET posterior predicted expected values (epred) ----
+# Use re_formula = NA to marginalize over group-level effects as you did
+# posterior_epred returns draws x rows
+set.seed(42)
+epred_draws <- posterior_epred(fit, newdata = newdata, re_formula = NA, ndraws = n_draws_to_use)
+# epred_draws: matrix (n_draws x nrow(newdata))
+
+nd <- nrow(newdata)
+ndraws <- dim(epred_draws)[1]
+
+#### 3) FOR EACH DRAW & REGION: find DCM depth (depth of maximum predicted chl) ----
+# We'll compute per-draw DCM depth, and two diffuseness metrics:
+#  - FWHM: Full Width at Half Maximum (depth range where predicted >= half of draw's max)
+#  - weighted_sd: weighted standard deviation of depth using predicted values as weights
+
+# helper function to compute metrics for one region across depths
+compute_metrics_for_region <- function(pred_matrix_region, depths) {
+  # pred_matrix_region: matrix n_draws x n_depths (rows = draws)
+  # depths: numeric vector of length n_depths
+  n_draws <- nrow(pred_matrix_region)
+  res <- tibble(
+    draw = seq_len(n_draws),
+    dcm_depth = numeric(n_draws),
+    fwhm = numeric(n_draws),
+    weighted_mean = numeric(n_draws),
+    weighted_sd = numeric(n_draws),
+    max_val = numeric(n_draws)
+  )
+
+  for(i in seq_len(n_draws)) {
+    v <- pred_matrix_region[i, ]
+    # handle NA or degenerate
+    if(all(is.na(v))) {
+      res$dcm_depth[i] <- NA
+      res$fwhm[i] <- NA
+      res$weighted_mean[i] <- NA
+      res$weighted_sd[i] <- NA
+      res$max_val[i] <- NA
+      next
+    }
+    # DCM depth: depth where v is maximal (if multiple, take mean depth of ties)
+    max_val <- max(v, na.rm = TRUE)
+    res$max_val[i] <- max_val
+    tie_idxs <- which(v >= (max_val - .Machine$double.eps*100))  # handle floats
+    res$dcm_depth[i] <- mean(depths[tie_idxs])
+
+    # FWHM: depths where v >= half max
+    half <- max_val / 2
+    idxs_half <- which(v >= half)
+    if(length(idxs_half) == 0) {
+      res$fwhm[i] <- 0
+    } else {
+      res$fwhm[i] <- max(depths[idxs_half]) - min(depths[idxs_half])
+    }
+
+    # weighted mean & sd (weights = predicted values, add small epsilon so zero weights ok)
+    w <- pmax(v, 0)  # ensure non-negative
+    if(sum(w, na.rm = TRUE) <= 0) {
+      res$weighted_mean[i] <- NA
+      res$weighted_sd[i] <- NA
+    } else {
+      wm <- sum(depths * w, na.rm = TRUE) / sum(w, na.rm = TRUE)
+      res$weighted_mean[i] <- wm
+      # weighted sd
+      ws2 <- sum(w * (depths - wm)^2, na.rm = TRUE) / sum(w, na.rm = TRUE)
+      res$weighted_sd[i] <- sqrt(ws2)
+    }
+  }
+  res
+}
+
+# split epred_draws by region
+region_levels <- levels(data[[region_var]])
+n_regions <- length(region_levels)
+
+# build an array or list of matrices per region: columns in newdata are grouped by region in order because of expand.grid
+# confirm ordering: expand.grid(Region, depth) -> Region changes slowest; we arranged Region then depth so rows are Region1 depth1..N, Region2...
+# Build indices:
+rows_per_region <- length(depth_seq)
+region_indices <- split(seq_len(nrow(newdata)), rep(seq_len(n_regions), each = rows_per_region))
+
+# For performance, convert epred_draws to array: draws x rows
+# Now create a list of matrices draws x depths for each region
+region_pred_mats <- vector("list", n_regions)
+for(j in seq_len(n_regions)) {
+  idxs <- region_indices[[j]]
+  # epred_draws[ , idxs] gives draws x depths_for_region
+  region_pred_mats[[j]] <- epred_draws[, idxs, drop = FALSE]
+}
+
+# compute metrics per region
+region_metrics_list <- map(region_pred_mats, compute_metrics_for_region, depths = depth_seq)
+
+# bind into a tibble with region labels
+region_metrics_df <- bind_rows(
+  map2(region_metrics_list, region_levels, ~ mutate(.x, Region = .y)),
+  .id = NULL
+) %>%
+  select(Region, draw, dcm_depth, max_val, fwhm, weighted_mean, weighted_sd)
+
+#### 4) SUMMARISE POSTERIOR METRICS (mean, median, 95% CI) per region ----
+region_summary <- region_metrics_df %>%
+  group_by(Region) %>%
+  summarise(
+    dcm_depth_mean = mean(dcm_depth, na.rm = TRUE),
+    dcm_depth_med  = median(dcm_depth, na.rm = TRUE),
+    dcm_depth_l95  = quantile(dcm_depth, 0.025, na.rm = TRUE),
+    dcm_depth_u95  = quantile(dcm_depth, 0.975, na.rm = TRUE),
+
+    fwhm_mean = mean(fwhm, na.rm = TRUE),
+    fwhm_l95  = quantile(fwhm, 0.025, na.rm = TRUE),
+    fwhm_u95  = quantile(fwhm, 0.975, na.rm = TRUE),
+
+    wsd_mean = mean(weighted_sd, na.rm = TRUE),
+    wsd_l95  = quantile(weighted_sd, 0.025, na.rm = TRUE),
+    wsd_u95  = quantile(weighted_sd, 0.975, na.rm = TRUE),
+
+    .groups = "drop"
+  ) %>%
+  arrange(Region)
+
+print(region_summary)   # quick table of DCM depths + diffuseness
+
+#### 5) BUILD publication-ready figure ----
+# Also construct the mean +/- 95% CI profile per region (you already computed pred_summary earlier; we'll compute it from epred_draws)
+# compute mean and 95% CI for each newdata row
+pred_summary <- tibble(
+  depth = newdata$depth,
+  Region = newdata$Region,
+  mean = apply(epred_draws, 2, mean),
+  lwr  = apply(epred_draws, 2, function(x) quantile(x, 0.025)),
+  upr  = apply(epred_draws, 2, function(x) quantile(x, 0.975))
+)
+
+# Plot: faceted by Region, profile lines with ribbon, DCM depth points + errorbars for each region
+# We'll map DCM depth summary as a horizontal line and point for each region
+dcm_plot <- ggplot(pred_summary, aes(y = mean, x = depth)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2) +
+  scale_x_reverse() +
+  coord_flip()+
+  facet_wrap(~ Region, scales = "free_x") +
+  labs(y = "Predicted chl_norm (mean ± 95% CI)",
+       x = "Depth (m)",
+       title = "Posterior predicted vertical profiles of chl_norm by Region") +
+  theme_minimal() +
+  theme(strip.text = element_text(face = "bold"))
+
+dcm_plot
+
+# Add DCM depth point + 95% interval as vertical ticks on each facet
+# To draw them in the facet, join pred_summary or use annotation via geom_point with data = region_summary
+dcm_point_df <- region_summary %>%
+  select(Region, dcm_depth_med, dcm_depth_l95, dcm_depth_u95)
+
+dcm_plot2 <- dcm_plot +
+  geom_point(data = dcm_point_df, aes(y = 0, x = dcm_depth_med), inherit.aes = FALSE, 
+             shape = 21, fill = "black", size = 2) +
+  geom_errorbar(data = dcm_point_df, aes(y = 0, xmin = dcm_depth_l95, xmax = dcm_depth_u95), 
+                inherit.aes = FALSE, width = 0.02) +
+  coord_flip()+
+  # hide the x=0 points from axis area by placing them on left side — instead use annotation; but keep simple
+  theme(legend.position = "none")
+
+dcm_plot2
+
+# Alternatively, create a separate DCM summary plot (Depth with CI) stacked by Region:
+dcm_summary_plot <- ggplot(region_summary, aes(x = dcm_depth_med, y = fct_reorder(Region, dcm_depth_med))) +
+  geom_point() +
+  geom_errorbarh(aes(xmin = dcm_depth_l95, xmax = dcm_depth_u95), height = 0.2) +
+  labs(x = "DCM depth (m; median ± 95% CI)", y = NULL, title = "Posterior DCM depth by Region") +
+  theme_minimal()
+
+dcm_summary_plot
+
+# Diffuseness plot (FWHM or weighted SD)
+diffuseness_plot <- ggplot(region_summary, aes(x = fwhm_mean, y = fct_reorder(Region, fwhm_mean))) +
+  geom_point() +
+  geom_errorbarh(aes(xmin = fwhm_l95, xmax = fwhm_u95), height = 0.2) +
+  labs(x = "FWHM (m) — mean ± 95% CI", y = NULL, title = "DCM diffuseness (FWHM) by Region") +
+  theme_minimal()
+
+diffuseness_plot
+
+# Save or print plots
+# print(dcm_plot2)
+# print(dcm_summary_plot)
+# print(diffuseness_plot)
+
+#### 6) OPTIONAL: Save summary tables to CSV ----
+write.csv(region_summary, "region_dcm_diffuseness_summary.csv", row.names = FALSE)
+message("Saved region_dcm_diffuseness_summary.csv to working directory.")
+
+#### 7) QUICK DIAGNOSTIC NOTES ----
+# If you see NA or extreme values for some regions, consider:
+# - increasing depth grid resolution (smaller depth_by) or decreasing if noisy
+# - check whether predicted profiles are multimodal (rare). Then FWHM/weighted_sd may not capture multimodality.
+# - ensure newdata used the correct 'Region' levels and that log10_distance is appropriate.
+
+```
+
+
+
+```{r}
+#posterior predicted probability
+
+#pred_draws_pp <- posterior_predict(fit, newdata = newdata, re_formula = NA)
+
+library(dplyr)
+library(tidyr)
+
+pred_draws_pp <- posterior_predict(fit, newdata = newdata, re_formula = NA)
+
+pred_summary_pp <- as.data.frame(pred_draws_pp) %>%
+  # Convert matrix to long format
+  pivot_longer(
+    cols = everything(),
+    names_to = "obs_id",
+    values_to = "pred"
+  ) %>%
+  mutate(obs_id = as.integer(gsub("V", "", obs_id))) %>%
+  # Join the correct metadata for each newdata row
+  left_join(
+    newdata %>% mutate(obs_id = dplyr::row_number()),
+    by = "obs_id"
+  ) %>%
+  group_by(Region, depth) %>%
+  summarize(
+    mean = mean(pred),
+    lower = quantile(pred, 0.025),
+    upper = quantile(pred, 0.975),
+    .groups = "drop"
+  )
+
+
+
+ggplot(pred_summary_pp, aes(x = depth, color = Region)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper, fill = Region), alpha = 0.25) +
+  geom_line(aes(y = mean)) +
+  coord_flip()+
+  facet_wrap(~Region) +
+  scale_x_reverse()
+
+
+#pred_draws_long <- as.data.frame(pred_draws_pp) %>%
+#  bind_cols(newdata) %>%
+#  pivot_longer(cols = starts_with("V"), values_to = "pred")
+
+# posterior_predict gives draws x newdata
+dim(pred_draws_pp)
+# should be 10000 x 1687 (for example)
+
+# Convert matrix to long format
+pred_draws_long <- as.data.frame(pred_draws_pp) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "obs_id",
+    values_to = "pred"
+  ) %>%
+  mutate(obs_id = as.integer(gsub("V", "", obs_id))) %>%
+  # Join with metadata
+  left_join(
+    newdata %>% mutate(obs_id = row_number()),
+    by = "obs_id"
+  )
+
+#ggplot(pred_draws_long, aes(x = pred, y = depth, fill = ..level..)) +
+#  geom_density_ridges_gradient(
+#    aes(height = ..density.., group = depth, fill = after_stat(density)),
+#    scale = 2, rel_min_height = 0.01
+#  ) +
+#  facet_wrap(~Region) +
+#  scale_y_reverse()
+
+```
+#predicted probability of chl_norm of 0.5 or 1
+```{r}
+# Define your target values (e.g., enhancement levels)
+target_values <- c(0.5, 1.0)
+
+# Small window width around each target
+eps <- 0.05
+
+# Compute probabilities that chl_norm falls within [target - eps, target + eps]
+prob_summary <- pred_draws_long %>%
+  group_by(Region, depth) %>%
+  summarize(
+    prob_0.5 = mean(pred > (0.5 - eps) & pred < (0.5 + eps)),
+    prob_1.0 = mean(pred > (1.0 - eps) & pred < (1.0 + eps)),
+    .groups = "drop"
+  )
+
+
+ggplot(prob_summary, aes(x = depth)) +
+  geom_line(aes(y = prob_0.5, color = "chl_norm = 0.5")) +
+  geom_line(aes(y = prob_1.0, color = "chl_norm = 1.0")) +
+  facet_wrap(~ Region, scales = "free_x") +
+  coord_flip() +
+  scale_x_reverse() +
+  labs(
+    x = "Depth (m)",
+    y = "Probability density near chl_norm value",
+    title = "Probability of observing specific enhancement levels by depth"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+#prediction chl_norm >0.5 or 1
+```{r}
+prob_summary <- pred_draws_long %>%
+  group_by(Region, depth) %>%
+  summarize(
+    prob_gt_0.25 = mean(pred > 0.25),
+    prob_gt_0.5 = mean(pred > 0.5),
+    prob_gt_1.0 = mean(pred > 1.0),
+    prob_gt_2.0 = mean(pred > 2.0),
+    prob_gt_3.0 = mean(pred > 3.0),
+    prob_gt_4.0 = mean(pred > 4.0),
+    .groups = "drop"
+  )
+
+
+prob_enhancement_plot<-ggplot(prob_summary, aes(x = depth)) +
+  geom_line(aes(y = prob_gt_0.25, color = "chl_norm > 0.25")) +
+  geom_line(aes(y = prob_gt_0.5, color = "chl_norm > 0.5")) +
+  geom_line(aes(y = prob_gt_1.0, color = "chl_norm > 1.0")) +
+  geom_line(aes(y = prob_gt_2.0, color = "chl_norm > 2.0")) +
+  geom_line(aes(y = prob_gt_3.0, color = "chl_norm > 3.0")) +
+  geom_line(aes(y = prob_gt_4.0, color = "chl_norm > 4.0")) +
+  geom_vline(xintercept = 30, linetype = "dotted")+
+  geom_vline(xintercept = 60, linetype = "dotted")+
+  geom_vline(xintercept = 120, linetype = "dotted")+
+  facet_wrap(~ Region) +#, scales = "free_x"
+  coord_flip() +
+  scale_x_reverse() +
+  labs(
+    x = "Depth (m)",
+    y = "Probability density near chl_norm value",
+    title = "Probability of observing specific enhancement levels by depth"
+  ) +
+  theme_minimal() +
+  scale_color_manual(
+    values = c("#20255c","#4575b4", "#74add1",  "#fdae61", "#d73027", "#a50026"),
+    name = "Chl_norm bin"
+  ) +
+  theme(legend.position = "bottom")
+
+prob_enhancement_plot
+```
+
+```{r}
+ggsave("prob_enhancement_plot.pdf", plot =prob_enhancement_plot, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+
+```{r}
+unique(prob_summary$Region)
+```
+
+
+```{r}
+library(patchwork)
+```
+
+#prediction chl_norm >0.5 or 1
+```{r}
+prob_summary <- pred_draws_long %>%
+  group_by(Region, depth) %>%
+  summarize(
+  #  prob_gt_0.25 = mean(pred > 0.25),
+    prob_gt_0.5 = mean(pred > 0.5),
+    prob_gt_1.0 = mean(pred > 1.0),
+    prob_gt_2.0 = mean(pred > 2.0),
+    prob_gt_3.0 = mean(pred > 3.0),
+    prob_gt_4.0 = mean(pred > 4.0),
+    prob_gt_5.0 = mean(pred > 5.0),
+    .groups = "drop"
+  )
+
+prob_summary<-prob_summary%>%
+  filter(Region != "Central RS" & Region != "South RS" & Region != "North RS")
+
+
+prob_enhancement_plot<-ggplot(prob_summary, aes(x = depth)) +
+#  geom_line(aes(y = prob_gt_0.25, color = "1.25")) +
+  geom_line(aes(y = prob_gt_0.5, color = "1.5x"), size = 1) +
+  geom_line(aes(y = prob_gt_1.0, color = "2x"), size = 1) +
+  geom_line(aes(y = prob_gt_2.0, color = "3x"), size = 1) +
+  geom_line(aes(y = prob_gt_3.0, color = "4x"), size = 1) +
+  geom_line(aes(y = prob_gt_4.0, color = "5x"), size = 1) +
+  geom_line(aes(y = prob_gt_5.0, color = "6x"), size = 1) +
+#  geom_vline(xintercept = 30, linetype = "dotted")+
+#  geom_vline(xintercept = 60, linetype = "dotted")+
+#  geom_vline(xintercept = 120, linetype = "dotted")+
+  facet_wrap(~ Region) +#, scales = "free_x"
+  coord_flip() +
+  scale_x_reverse() +
+  labs(
+    x = "Depth (m)",
+    y = "Probability of Enhancement",
+    title = "Probability of observing specific enhancement levels by depth"
+  ) +
+  theme_minimal() +
+  scale_color_manual(
+    values = c("#20255c","#4575b4", "#74add1",  "#fdae61", "#d73027", "#a50026"),
+    name = "Level of Chl Enhancement"
+  ) +
+  theme(legend.position = "bottom")
+
+prob_enhancement_plot
+
+```
+
+```{r}
+ggsave("prob_enhancement_plot_pacific.pdf", plot =prob_enhancement_plot, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+```{r}
+ggsave("prob_enhancement_plot_pacific.png", plot =prob_enhancement_plot, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+
+
+#filled plot
+```{r, fig.width=11.8, fig.height=8.5, dpi=300}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+prob_summary <- pred_draws_long %>%
+  group_by(Region, depth) %>%
+  summarize(
+  #  prob_gt_0.25 = mean(pred > 0.5),
+    prob_gt_0.5  = mean(pred > 0.5),
+    prob_gt_1.0  = mean(pred > 1.0),
+    prob_gt_2.0  = mean(pred > 2.0),
+    prob_gt_3.0  = mean(pred > 3.0),
+    prob_gt_4.0  = mean(pred > 4.0),
+    prob_gt_5.0  = mean(pred > 5.0),
+    .groups = "drop"
+  )
+
+
+#remove non-pacific regions
+prob_summary<-prob_summary%>%
+  filter(Region != "Central RS" & Region != "South RS" & Region != "North RS")
+
+
+# ---- long format for ggplot ----
+prob_long <- prob_summary %>%
+  pivot_longer(
+    cols = starts_with("prob_gt_"),
+    names_to = "bin",
+    values_to = "prob"
+  ) %>%
+  mutate(
+    bin = recode(
+      bin,
+    #  prob_gt_0.25 = "chl_norm > 0.25",
+      prob_gt_0.5  = "1.5X to <2X",
+      prob_gt_1.0  = "2X to <3X",
+      prob_gt_2.0  = "3X to <4X",
+      prob_gt_3.0  = "4X to <5X",
+      prob_gt_4.0  = "5X to <6X",
+      prob_gt_5.0  = "6X to >6X"
+    ),
+    # control legend / draw order (adjust if you want reversed)
+    bin = factor(
+      bin,
+      levels = c(
+       # "chl_norm > 0.25",
+         "1.5X to <2X",
+        "2X to <3X",
+        "3X to <4X",
+        "4X to <5X",
+        "5X to <6X",
+        "6X to >6X"
+      )
+    )
+  )
+
+cols <- c(
+ "1.5X to <2X" = "#20255c",
+  "2X to <3X"  = "#4575b4",
+  "3X to <4X"  = "#74add1",
+  "4X to <5X"  = "#fdae61",
+  "5X to <6X"  = "#d73027",
+  "6X to >6X"  = "#a50026"
+)
+
+
+prob_long <- prob_long %>%
+  mutate(
+    Region = factor(
+      Region,
+      levels = c("Samoa", "Mariana", "Equatorial", "NWHI", "Hawiian")
+      # NOTE: these strings must match your Region values exactly
+    )
+  )
+
+
+
+prob_enhancement_plot <-
+  ggplot(prob_long, aes(x = depth, y = prob, colour = bin, fill = bin)) +
+
+  # filled "density-like" area (0 -> prob)
+  geom_ribbon(aes(ymin = 0, ymax = prob, group = bin),
+              alpha = 0.95, colour = NA) +
+
+  # outline on top
+  geom_line(linewidth = 0.1, color = "white") +
+
+  # depth reference lines (stay as vline before coord_flip)
+ # geom_vline(xintercept = c(30, 60, 120), linetype = "dotted") +
+
+  facet_wrap(~ Region, ncol = 3, as.table = FALSE) +
+  coord_flip() +
+  scale_x_reverse() +
+
+  scale_colour_manual(values = cols, name = "Level of enhancement relative \nto the surface") +
+  scale_fill_manual(values = cols, name = "Level of enhancement relative \nto the surface") +
+
+  labs(
+    x = "Depth (m)",
+    y = "Probability of enhancement",
+    title = "Probability of observing specific enhancement levels by depth"
+  ) +
+
+  theme_minimal(base_size = 12) +
+
+  # key bits: put grid on top + make axis/grid/labels white
+  theme(
+  #  legend.position = "bottom",
+
+    # draw panel grid ON TOP of filled geoms so it stays visible
+    panel.ontop = TRUE,
+
+    legend.position = "inside",
+  legend.position.inside = c(0.7, 0.7),  # x, y in [0,1]
+  legend.justification = c(0, 0),
+  legend.direction = "vertical",
+
+    
+    # white text/axes for dark backgrounds
+ #   axis.title = element_text(colour = "white"),
+#    axis.text  = element_text(colour = "white"),
+#    axis.ticks = element_line(colour = "white"),
+#    axis.line  = element_line(colour = "white"),
+
+ #   strip.text = element_text(colour = "white"),
+#    legend.title = element_text(colour = "white"),
+#    legend.text  = element_text(colour = "white"),
+
+    # grid styling (on top, and white)
+#    panel.grid.major = element_line(colour = "white", linewidth = 0.35),
+ #   panel.grid.minor = element_line(colour = "white", linewidth = 0.2),
+
+    # if you are using a dark panel/background elsewhere, set explicitly:
+#    plot.background  = element_rect(fill = "black", colour = NA),
+#    panel.background = element_rect(fill = "black", colour = NA),
+#    legend.background = element_rect(fill = "black", colour = NA)
+  )
+
+prob_enhancement_plot
+
+```
+
+
+```{r}
+ggsave("prob_enhancement_plot_pacific_fill.pdf", plot =prob_enhancement_plot, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+```{r}
+ggsave("prob_enhancement_plot_pacific_fill.png", plot =prob_enhancement_plot, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+
+
+
+
+#filled plot for poster
+```{r, fig.width=15.5, fig.height=8 dpi=300}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+prob_summary <- pred_draws_long %>%
+  group_by(Region, depth) %>%
+  summarize(
+  #  prob_gt_0.25 = mean(pred > 0.5),
+    prob_gt_0.5  = mean(pred > 0.5),
+    prob_gt_1.0  = mean(pred > 1.0),
+    prob_gt_2.0  = mean(pred > 2.0),
+    prob_gt_3.0  = mean(pred > 3.0),
+    prob_gt_4.0  = mean(pred > 4.0),
+    prob_gt_5.0  = mean(pred > 5.0),
+    .groups = "drop"
+  )
+
+
+#remove non-pacific regions
+prob_summary<-prob_summary%>%
+  filter(Region != "Central RS" & Region != "South RS" & Region != "North RS")
+
+
+# ---- long format for ggplot ----
+prob_long <- prob_summary %>%
+  pivot_longer(
+    cols = starts_with("prob_gt_"),
+    names_to = "bin",
+    values_to = "prob"
+  ) %>%
+  mutate(
+    bin = recode(
+      bin,
+    #  prob_gt_0.25 = "chl_norm > 0.25",
+      prob_gt_0.5  = "1.5X to <2X",
+      prob_gt_1.0  = "2X to <3X",
+      prob_gt_2.0  = "3X to <4X",
+      prob_gt_3.0  = "4X to <5X",
+      prob_gt_4.0  = "5X to <6X",
+      prob_gt_5.0  = "6X to >6X"
+    ),
+    # control legend / draw order (adjust if you want reversed)
+    bin = factor(
+      bin,
+      levels = c(
+       # "chl_norm > 0.25",
+        "1.5X to <2X",
+        "2X to <3X",
+        "3X to <4X",
+        "4X to <5X",
+        "5X to <6X",
+        "6X to >6X"
+      )
+    )
+  )
+
+cols <- c(
+  "1.5X to <2X" = "#20255c",
+  "2X to <3X"  = "#4575b4",
+  "3X to <4X"  = "#74add1",
+  "4X to <5X"  = "#fdae61",
+  "5X to <6X"  = "#d73027",
+  "6X to >6X"  = "#a50026"
+)
+
+
+# ---- facet order + layout control ----
+prob_long <- prob_long %>%
+  mutate(
+    Region = factor(
+      Region,
+      levels = c("Samoa", "Mariana", "Equatorial", "NWHI", "Hawiian")
+      # NOTE: these strings must match your Region values exactly
+    )
+  )
+
+
+
+prob_enhancement_plot <-
+  ggplot(prob_long, aes(x = depth, y = prob, colour = bin, fill = bin)) +
+
+  # filled "density-like" area (0 -> prob)
+  geom_ribbon(aes(ymin = 0, ymax = prob, group = bin),
+              alpha = 0.95, colour = NA) +
+
+  # outline on top
+  geom_line(linewidth = 0.1, color = "white") +
+
+  # depth reference lines (stay as vline before coord_flip)
+ # geom_vline(xintercept = c(30, 60, 120), linetype = "dotted") +
+
+  facet_wrap(~ Region, ncol = 3, as.table = FALSE) +
+  coord_flip() +
+  scale_x_reverse() +
+
+  scale_colour_manual(values = cols, name = "Level of enhancement relative \nto the surface") +
+  scale_fill_manual(values = cols, name = "Level of enhancement relative \nto the surface") +
+
+  labs(
+    x = "Depth (m)",
+    y = "Probability of enhancement",
+    title = "Probability of observing specific enhancement levels by depth"
+  ) +
+
+  theme_minimal(base_size = 24) +
+
+  # key bits: put grid on top + make axis/grid/labels white
+  theme(
+  #  legend.position = "bottom",
+
+    # draw panel grid ON TOP of filled geoms so it stays visible
+    panel.ontop = TRUE,
+
+    legend.position = "inside",
+  legend.position.inside = c(0.67, 0.55),  # x, y in [0,1]
+  legend.justification = c(0, 0),
+  legend.direction = "vertical",
+
+    
+    # white text/axes for dark backgrounds
+ #   axis.title = element_text(colour = "white"),
+#    axis.text  = element_text(colour = "white"),
+#    axis.ticks = element_line(colour = "white"),
+#    axis.line  = element_line(colour = "white"),
+
+ #   strip.text = element_text(colour = "white"),
+#    legend.title = element_text(colour = "white"),
+#    legend.text  = element_text(colour = "white"),
+
+    # grid styling (on top, and white)
+#    panel.grid.major = element_line(colour = "white", linewidth = 0.35),
+ #   panel.grid.minor = element_line(colour = "white", linewidth = 0.2),
+
+    # if you are using a dark panel/background elsewhere, set explicitly:
+#    plot.background  = element_rect(fill = "black", colour = NA),
+#    panel.background = element_rect(fill = "black", colour = NA),
+#    legend.background = element_rect(fill = "black", colour = NA)
+  )
+
+prob_enhancement_plot
+
+```
+
+```{r}
+ggsave("prob_enhancement_plot_pacific_fill_poster.pdf", plot =prob_enhancement_plot, height = 8, width = 15.5, units = c("in"), dpi = 300)
+```
+```{r}
+ggsave("prob_enhancement_plot_pacific_fill_poster.png", plot =prob_enhancement_plot, height = 8, width = 15.5, units = c("in"), dpi = 300)
+```
+
+
+
+
+```{r}
+prob_summary <- pred_draws_long %>%
+  group_by(Region, depth) %>%
+  summarize(
+  #  prob_gt_0.25 = mean(pred > 0.25),
+    prob_gt_0.5 = mean(pred > 9),
+    prob_gt_1.0 = mean(pred > 10),
+    prob_gt_2.0 = mean(pred > 11),
+    prob_gt_3.0 = mean(pred > 12),
+    prob_gt_4.0 = mean(pred > 13),
+    prob_gt_5.0 = mean(pred > 14),
+    .groups = "drop"
+  )
+
+prob_summary<-prob_summary%>%
+  filter(Region == "Central RS" | Region == "South RS" | Region == "North RS")
+
+
+prob_enhancement_plot<-ggplot(prob_summary, aes(x = depth)) +
+#  geom_line(aes(y = prob_gt_0.25, color = "1.25")) +
+  geom_line(aes(y = prob_gt_0.5, color = "10x"), size = 1) +
+  geom_line(aes(y = prob_gt_1.0, color = "14x"), size = 1) +
+  geom_line(aes(y = prob_gt_2.0, color = "18x"), size = 1) +
+  geom_line(aes(y = prob_gt_3.0, color = "22x"), size = 1) +
+  geom_line(aes(y = prob_gt_4.0, color = "24x"), size = 1) +
+  geom_line(aes(y = prob_gt_5.0, color = "26x"), size = 1) +
+#  geom_vline(xintercept = 30, linetype = "dotted")+
+#  geom_vline(xintercept = 60, linetype = "dotted")+
+#  geom_vline(xintercept = 120, linetype = "dotted")+
+  facet_wrap(~ Region) +#, scales = "free_x"
+  coord_flip() +
+  scale_x_reverse() +
+  labs(
+    x = "Depth (m)",
+    y = "Probability of Enhancement",
+    title = "Probability of observing specific enhancement levels by depth"
+  ) +
+  theme_minimal() +
+  scale_color_manual(
+    name = "Level of Chl Enhancement",
+    breaks = c("10x", "14x", "18x", "22x", "24x", "26x"),
+    values = c(
+      "10x"  = "#20255c",
+      "14x" = "#4575b4",
+      "18x" = "#74add1",
+      "22x" = "#fdae61",
+      "24x" = "#d73027",
+      "26x" = "#a50026"
+    )
+  ) +
+  theme(legend.position = "bottom")
+
+prob_enhancement_plot
+```
+
+```{r}
+ggsave("prob_enhancement_plot_RS.png", plot =prob_enhancement_plot, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+
+
+#write.csv(chla_mean_CR_3m, "chla_mean_CR_3m.csv")
+
+```{r}
+write.csv(pred_draws_long, "C:/Users/gagem/OneDrive/Desktop/chla/FINAL/Data/model_output_long.csv")
+```
+
+
+#filled plot
+```{r, fig.width=11.8, fig.height=8.5, dpi=300}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+prob_summary <- pred_draws_long %>%
+  group_by(Region, depth) %>%
+  summarize(
+  #  prob_gt_0.25 = mean(pred > 0.25),
+    prob_gt_0.5 = mean(pred > 6),
+    prob_gt_1.0 = mean(pred > 7),
+    prob_gt_2.0 = mean(pred > 8),
+    prob_gt_3.0 = mean(pred > 9),
+    prob_gt_4.0 = mean(pred > 10),
+    prob_gt_5.0 = mean(pred > 11),
+    .groups = "drop"
+  )
+
+prob_summary<-prob_summary%>%
+  filter(Region == "North RS" | Region == "Central RS" | Region == "South RS")
+
+# ---- long format for ggplot ----
+prob_long <- prob_summary %>%
+  pivot_longer(
+    cols = starts_with("prob_gt_"),
+    names_to = "bin",
+    values_to = "prob"
+  ) %>%
+  mutate(
+    bin = recode(
+      bin,
+    #  prob_gt_0.25 = "chl_norm > 0.25",
+      prob_gt_0.5  = "7X to <8X",
+      prob_gt_1.0  = "8X to <9X",
+      prob_gt_2.0  = "9X to <10X",
+      prob_gt_3.0  = "10X to <11X",
+      prob_gt_4.0  = "11X to <12X",
+      prob_gt_5.0  = "12X to >12X"
+    ),
+    # control legend / draw order (adjust if you want reversed)
+    bin = factor(
+      bin,
+      levels = c(
+       # "chl_norm > 0.25",
+         "7X to <8X",
+        "8X to <9X",
+        "9X to <10X",
+        "10X to <11X",
+        "11X to <12X",
+        "12X to >12X"
+      )
+    )
+  )
+
+cols <- c(
+ "7X to <8X" = "#20255c",
+  "8X to <9X"  = "#4575b4",
+  "9X to <10X"  = "#74add1",
+  "10X to <11X"  = "#fdae61",
+  "11X to <12X"  = "#d73027",
+  "12X to >12X"  = "#a50026"
+)
+
+
+prob_long <- prob_long %>%
+  mutate(
+    Region = factor(
+      Region,
+      levels = c("Central RS", "North RS", "South RS")
+      # NOTE: these strings must match your Region values exactly
+    )
+  )
+
+
+
+prob_enhancement_plot <-
+  ggplot(prob_long, aes(x = depth, y = prob, colour = bin, fill = bin)) +
+
+  # filled "density-like" area (0 -> prob)
+  geom_ribbon(aes(ymin = 0, ymax = prob, group = bin),
+              alpha = 0.95, colour = NA) +
+
+  # outline on top
+  geom_line(linewidth = 0.1, color = "white") +
+
+  # depth reference lines (stay as vline before coord_flip)
+ # geom_vline(xintercept = c(30, 60, 120), linetype = "dotted") +
+
+  facet_wrap(~ Region, ncol = 3, as.table = FALSE) +
+  coord_flip() +
+  scale_x_reverse() +
+
+  scale_colour_manual(values = cols, name = "Level of enhancement relative \nto the surface") +
+  scale_fill_manual(values = cols, name = "Level of enhancement relative \nto the surface") +
+
+  labs(
+    x = "Depth (m)",
+    y = "Probability of enhancement",
+    title = "Probability of observing specific enhancement levels by depth"
+  ) +
+
+  theme_minimal(base_size = 12) +
+
+  # key bits: put grid on top + make axis/grid/labels white
+  theme(
+  #  legend.position = "bottom",
+
+    # draw panel grid ON TOP of filled geoms so it stays visible
+    panel.ontop = TRUE,
+
+    legend.position = "inside",
+  legend.position.inside = c(0.7, 0.25),  # x, y in [0,1]
+  legend.justification = c(0, 0),
+  legend.direction = "vertical",
+
+    
+    # white text/axes for dark backgrounds
+ #   axis.title = element_text(colour = "white"),
+#    axis.text  = element_text(colour = "white"),
+#    axis.ticks = element_line(colour = "white"),
+#    axis.line  = element_line(colour = "white"),
+
+ #   strip.text = element_text(colour = "white"),
+#    legend.title = element_text(colour = "white"),
+#    legend.text  = element_text(colour = "white"),
+
+    # grid styling (on top, and white)
+#    panel.grid.major = element_line(colour = "white", linewidth = 0.35),
+ #   panel.grid.minor = element_line(colour = "white", linewidth = 0.2),
+
+    # if you are using a dark panel/background elsewhere, set explicitly:
+#    plot.background  = element_rect(fill = "black", colour = NA),
+#    panel.background = element_rect(fill = "black", colour = NA),
+#    legend.background = element_rect(fill = "black", colour = NA)
+  )
+
+prob_enhancement_plot
+
+```
+
+
+```{r}
+ggsave("prob_enhancement_plot_rs_fill.pdf", plot =prob_enhancement_plot, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+```{r}
+ggsave("prob_enhancement_plot_rs_fill.png", plot =prob_enhancement_plot, height = 8.5, width = 11.8, units = c("in"), dpi = 300)
+```
+
+
+#back calculate Ocean effects from posterior
+
+library(brms)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# 1. Define a grid of depths (adjust range and spacing to your study)
+depth_grid <- seq(10, 250, by = 1)  # example: 0–200 m
+
+# 2. Build prediction data for each region
+# (Use representative or median values for covariates like log10_distance and enso)
+newdata_region <- expand.grid(
+  depth = depth_grid,
+  log10_distance = median(CTD$log10_distance, na.rm = TRUE),
+  enso = unique(CTD$enso, na.rm = TRUE),
+  Region = unique(CTD$Region) #,
+# date = unique(CTD$date)
+)
+
+# Add ocean for each region (use your actual lookup table if not in dataframe)
+region_to_ocean <- CTD %>%
+  distinct(Region, Ocean)
+newdata_region <- left_join(newdata_region, region_to_ocean, by = "Region")
+
+# 3. Get posterior draws for region-level predictions
+#    re_formula = NULL includes region-level effects (important!)
+posterior_region <- posterior_epred(
+  fit_fixed_inter,        # your fitted brms model
+  newdata = newdata_region,
+  re_formula = NA  # include all group-level effects
+)
+
+# posterior_region is [iterations x nrow(newdata_region)] matrix
+
+# 4. Reshape posterior predictions and average by Ocean
+posterior_df <- as_draws_df(posterior_region) %>%
+  mutate(draw = row_number()) %>%
+  pivot_longer(
+    cols = starts_with("V"),
+    names_to = "row_id",
+    values_to = "chl_pred"
+  ) %>%
+  mutate(row_id = as.integer(gsub("V", "", row_id))) %>%
+  left_join(
+    newdata_region %>%
+      mutate(row_id = row_number()) %>%
+      select(row_id, Region, Ocean, depth),
+    by = "row_id"
+  )
+
+# 5. Aggregate across regions within each ocean (posterior mean at each draw)
+posterior_ocean <- posterior_df %>%
+  group_by(draw, Ocean, depth) %>%
+  summarise(chl_pred = mean(chl_pred), .groups = "drop")
+
+# 6. Summarize posterior mean and credible intervals
+ocean_summary <- posterior_ocean %>%
+  group_by(Ocean, depth) %>%
+  summarise(
+    mean = mean(chl_pred),
+    lower = quantile(chl_pred, 0.025),
+    upper = quantile(chl_pred, 0.975),
+    .groups = "drop"
+  )
+
+# 7. Plot the ocean-level depth–chl curves
+ggplot(ocean_summary, aes(x = depth, y = mean, color = Ocean, fill = Ocean)) +
+  geom_line(size = 1) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.25, color = NA) +
+  scale_x_reverse() +  # depth usually increases downward
+  coord_flip() +       # optional for oceanographic style
+  labs(
+    x = "Depth (m)",
+    y = "Predicted normalized chlorophyll",
+    title = "Ocean-level posterior mean chlorophyll-depth profiles"
+  ) +
+  theme_minimal(base_size = 14)
+
+
+

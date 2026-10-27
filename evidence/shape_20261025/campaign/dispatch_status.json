@@ -1,0 +1,11 @@
+{
+  "utc": "2026-10-25T11:14:41.409930+00:00",
+  "statuses": {
+    "complete": 79,
+    "fitting": 48,
+    "not_submitted": 155
+  },
+  "active_model_jobs": 48,
+  "allocated_model_cpus": 768,
+  "submitted_this_pass": []
+}

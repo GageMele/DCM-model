@@ -1,0 +1,40 @@
+{
+  "cases": 282,
+  "posterior_fits": 270,
+  "prior_predictive_fits": 12,
+  "full_data_posterior_fits": 11,
+  "fractions": {
+    "p10": 27,
+    "p20": 133,
+    "p40": 27,
+    "p50": 51,
+    "p75": 33,
+    "p100": 11
+  },
+  "depth_basis_dimensions": [
+    7,
+    9,
+    11,
+    13,
+    15
+  ],
+  "blocks": {
+    "size_basis": 90,
+    "full_data": 6,
+    "full_data_high_k": 3,
+    "intermediate_k": 24,
+    "regional_k": 18,
+    "mld_surface": 45,
+    "full_data_surface": 2,
+    "mld_basis": 8,
+    "cast_selection": 24,
+    "mld_width": 12,
+    "delta95": 4,
+    "delta99": 4,
+    "warmup2000": 4,
+    "samples4000": 4,
+    "prior_sensitivity": 4,
+    "prior_predictive": 12,
+    "date_blocked": 18
+  }
+}

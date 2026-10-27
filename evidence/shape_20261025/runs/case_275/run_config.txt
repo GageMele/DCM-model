@@ -1,0 +1,37 @@
+$case
+    case_id                                          label        block
+275     275 s275_date_blocked_interaction_z_p20_k7_uniform date_blocked
+         equation subset fraction        split                       dataset_id
+275 interaction_z    p20      0.2 date_blocked date_blocked_p20_repeat_20261023
+    selection selection_seed    prior      mode variance   family cast autocor
+275    repeat       20261023 custom_z posterior   region gaussian none    none
+    depth_max k_depth k_mld k_distance k_profile chains cores threads cpus
+275       150       7     4          5   uniform      4     4       4   16
+    memory_gb iter warmup samples adapt_delta treedepth seed refresh
+275        64 3000   1000    2000        0.97        14 1234     100
+    evaluation_role fit_days priority equation_reference_case
+275         heldout        7       10                     274
+    settings_reference_case
+275                     275
+
+$job_id
+[1] "54447135"
+
+$allocated_cpus
+[1] 16
+
+$hostname
+[1] "cn512-22-r"
+
+$data_md5
+[1] "52b5dbc93b0fc5a50326161f0d255e83"
+
+$source_md5
+[1] "80c285d7215ecee12075b2ad40cd321a"
+
+$formula
+[1] "chl_norm ~ 1 + Region + s(depth, by = Region, bs = \"cr\", k = 7) + s(depth, by = mld_z, bs = \"cr\", k = 5) + s(depth, by = distance_z, bs = \"cr\", k = 5) + s(depth, by = mld_distance_z, bs = \"cr\", k = 5) + (1 | Ocean:Region:date) + (1 | Ocean:Region:enso)  sigma ~ 0 + Region"
+
+$cmdstan_version
+[1] "2.37.0"
+

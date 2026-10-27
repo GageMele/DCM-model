@@ -1,0 +1,18 @@
+Validated locally on 2026-10-14. New MCMC fits have NOT been run or submitted.
+
+- All R files parsed; all Bash and Slurm files passed bash -n.
+- The input was the actual frozen p10 data: 15,228 rows, 108 casts, 10-150 m.
+- The input copy matched its source byte-for-byte.
+- Complete brms make_standata construction passed for all six k vectors.
+- Penalized spline columns: 2936,1936,1336,936,832,296 for products 375,250,175,125,112,45.
+- All proposed paired comparisons keep non-target settings fixed.
+- The longer-warmup case retains the same 500 posterior draws per chain.
+- A mocked Slurm campaign exercised all 26 job submissions and their dependencies.
+- A rejected resource request stopped before submitting any jobs.
+- Mocked submissions did not alter their parent campaign.
+- Live diagnostics handled phase changes, a rolling 50-draw window and a partial final row.
+- The collector retained complete, diagnostic-only, fitting-failed and incomplete cases.
+- Matched tree-depth comparisons were verified using synthetic completed summaries.
+
+Validation does not establish sampling quality or adequacy of reduced k.
+The new campaign repeats real-data basis validation on Ibex before releasing fits.

@@ -1,0 +1,37 @@
+$case
+    case_id                                                 label
+263     263 s263_prior_predictive_warp_half_pos025_p20_k7_uniform
+               block         equation subset fraction   split
+263 prior_predictive warp_half_pos025    p20      0.2 primary
+            dataset_id selection selection_seed    prior  mode variance
+263 primary_p20_frozen    frozen              0 custom_z prior   region
+      family cast autocor depth_max k_depth k_mld k_distance k_profile chains
+263 gaussian none    none       150       7     4          5   uniform      4
+    cores threads cpus memory_gb iter warmup samples adapt_delta treedepth seed
+263     4       4   16        64 1000    500     500        0.97        14 1234
+    refresh evaluation_role fit_days priority equation_reference_case
+263     100         heldout        7        0                      NA
+    settings_reference_case
+263                      NA
+
+$job_id
+[1] "54250956"
+
+$allocated_cpus
+[1] 16
+
+$hostname
+[1] "cn509-14-r"
+
+$data_md5
+[1] "7eecee4e555d571da82759ef7f2d5ad6"
+
+$source_md5
+[1] "80c285d7215ecee12075b2ad40cd321a"
+
+$formula
+[1] "chl_norm ~ 1 + Region + distance_z + s(warp_half_pos025, by = Region, bs = \"cr\", k = 7) + (1 | Ocean:Region:date) + (1 | Ocean:Region:enso)  sigma ~ 0 + Region"
+
+$cmdstan_version
+[1] "2.37.0"
+

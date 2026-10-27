@@ -1,0 +1,55 @@
+rstan available: FALSE 
+DATE CLASS: matrix array 
+          [,1]
+[1,] -1.904487
+[2,] -1.904487
+[3,] -1.904487
+[4,] -1.904487
+[5,] -1.904487
+[6,] -1.904487
+$dim
+[1] 255369      1
+
+$`scaled:center`
+[1] 785.1834
+
+$`scaled:scale`
+[1] 412.2808
+
+[[1]]
+[1] "accept_stat__" "treedepth__"   "stepsize__"    "divergent__"  
+[5] "n_leapfrog__"  "energy__"      "chain"        
+
+[[2]]
+[1] "accept_stat__" "treedepth__"   "stepsize__"    "divergent__"  
+[5] "n_leapfrog__"  "energy__"      "chain"        
+
+[[3]]
+[1] "accept_stat__" "treedepth__"   "stepsize__"    "divergent__"  
+[5] "n_leapfrog__"  "energy__"      "chain"        
+
+[[4]]
+[1] "accept_stat__" "treedepth__"   "stepsize__"    "divergent__"  
+[5] "n_leapfrog__"  "energy__"      "chain"        
+
+  chain draws divergences tree_hits max_depth mean_leapfrogs     ebfmi
+1     1  4000           0         0        13       3396.120 0.7162962
+2     2  4000           0         0        13       3290.904 0.7014349
+3     3  4000           0         0        13       3498.776 0.7309604
+4     4  4000           0         0        13       3036.696 0.7460738
+  observations min_depth max_depth chains iter warmup retained max_rhat
+1       255369        10       250      4 5000   1000    16000 1.001655
+  min_bulk_ess min_tail_ess divergences tree_hits min_ebfmi
+1     3680.014     6854.821           0         0 0.7014349
+                          variable       mean          sd     rhat  ess_bulk
+9                 b_log10_distance -0.2100888 0.009799679 1.000412 21667.504
+18 sd_Ocean:Region:date__Intercept  0.3343392 0.020462377 1.000448  6909.089
+19 sd_Ocean:Region:enso__Intercept  0.6858356 0.242836283 1.000078  6110.938
+28                           sigma  1.4882524 0.002088317 1.000510 17191.541
+    ess_tail    mcse_mean
+9  10940.178 6.655332e-05
+18  9850.523 2.458716e-04
+19  9368.104 3.097236e-03
+28  9425.794 1.592594e-05
+BOUNDED TRAINING RMSE: 2.407175 COVERAGE90: 0.9296875 
+Historical analysis finished. No model fitting.

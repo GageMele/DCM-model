@@ -1,0 +1,1 @@
+Prepared 282 cases; 282 valid designs; 1080 full eligible casts; failures retained explicitly

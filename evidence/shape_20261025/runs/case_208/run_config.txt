@@ -1,0 +1,35 @@
+$case
+    case_id                                        label          block
+208     208 s208_cast_selection_mld_shift_p20_k7_uniform cast_selection
+     equation subset fraction   split                  dataset_id selection
+208 mld_shift    p20      0.2 primary primary_p20_repeat_20261024    repeat
+    selection_seed    prior      mode variance   family cast autocor depth_max
+208       20261024 custom_z posterior   region gaussian none    none       150
+    k_depth k_mld k_distance k_profile chains cores threads cpus memory_gb iter
+208       7     4          5   uniform      4     4       4   16        64 3000
+    warmup samples adapt_delta treedepth seed refresh evaluation_role fit_days
+208   1000    2000        0.97        14 1234     100         heldout        7
+    priority equation_reference_case settings_reference_case
+208       10                     205                     208
+
+$job_id
+[1] "54251081"
+
+$allocated_cpus
+[1] 16
+
+$hostname
+[1] "cn509-21-r"
+
+$data_md5
+[1] "0bb52ccab5cd349d600464f41862588e"
+
+$source_md5
+[1] "80c285d7215ecee12075b2ad40cd321a"
+
+$formula
+[1] "chl_norm ~ 1 + Region + distance_z + s(depth_mld, by = Region, bs = \"cr\", k = 7) + (1 | Ocean:Region:date) + (1 | Ocean:Region:enso)  sigma ~ 0 + Region"
+
+$cmdstan_version
+[1] "2.37.0"
+

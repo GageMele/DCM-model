@@ -1,0 +1,21 @@
+Validated 2026-10-15. No new MCMC fits have been submitted or run by this package yet.
+
+PASS: All delivered R files parse.
+PASS: All three formula expression trees exactly match the user-provided formulas.
+PASS: Gaussian likelihood, original numerical priors, raw predictors and k=15 retained.
+PASS: Complete brms data and Stan code construct on the actual frozen p10 data.
+PASS: Input copy matches its source byte-for-byte: 108 casts, 15,228 observations.
+PASS: Penalized spline columns are 104 (A), 117 (B) and 13 (C).
+PASS: Eighteen cases have matched settings across equations and request 168 total CPUs.
+PASS: Reporting handles zero completed fits and diagnostic-only/check-failed cases.
+PASS: Pair reporting includes A-B, A-C and B-C comparisons.
+PASS: Original first-campaign zero-row collector error reproduced on prior-only summaries.
+PASS: Separate repaired report succeeds without changing the original reporting script.
+
+The Bash/Slurm submission structure derives from the previously validated k150
+campaign. Local Bash execution was blocked by the Windows runtime; fresh shell
+syntax checks and Slurm resource checks run on Ibex before actual submission.
+Real-data model construction is repeated in a preparation job on Ibex.
+
+Construction success does not establish posterior convergence, runtime or
+ecological adequacy. Inspect the completed diagnostics and predictive figures.

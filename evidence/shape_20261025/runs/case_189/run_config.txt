@@ -1,0 +1,35 @@
+$case
+    case_id                                       label     block      equation
+189     189 s189_mld_basis_tensor_region_p20_k7_uniform mld_basis tensor_region
+    subset fraction   split         dataset_id selection selection_seed
+189    p20      0.2 primary primary_p20_frozen    frozen              0
+       prior      mode variance   family cast autocor depth_max k_depth k_mld
+189 custom_z posterior   region gaussian none    none       150       7     5
+    k_distance k_profile chains cores threads cpus memory_gb iter warmup
+189          5   uniform      4     4       4   16        96 3000   1000
+    samples adapt_delta treedepth seed refresh evaluation_role fit_days
+189    2000        0.97        14 1234     100         heldout        7
+    priority equation_reference_case settings_reference_case
+189       10                      19                     151
+
+$job_id
+[1] "54250973"
+
+$allocated_cpus
+[1] 16
+
+$hostname
+[1] "cn509-28-r"
+
+$data_md5
+[1] "7eecee4e555d571da82759ef7f2d5ad6"
+
+$source_md5
+[1] "80c285d7215ecee12075b2ad40cd321a"
+
+$formula
+[1] "chl_norm ~ 1 + Region + distance_z + t2(depth, mld_z, by = Region, bs = c(\"cr\", \"cr\"), k = c(7, 5)) + (1 | Ocean:Region:date) + (1 | Ocean:Region:enso)  sigma ~ 0 + Region"
+
+$cmdstan_version
+[1] "2.37.0"
+

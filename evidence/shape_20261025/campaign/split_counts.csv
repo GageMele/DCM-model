@@ -1,0 +1,12 @@
+"dataset_id","casts","observations","fraction","split","heldout_eligible","selection_seed"
+"primary_p10_frozen",108,15228,0.1,"primary",TRUE,0
+"primary_p20_frozen",216,30455,0.2,"primary",TRUE,0
+"primary_p40_frozen",432,60911,0.4,"primary",TRUE,0
+"primary_p50_frozen",540,76139,0.5,"primary",TRUE,0
+"primary_p75_frozen",810,114136,0.75,"primary",TRUE,0
+"primary_p100_all",1080,151962,1,"primary",FALSE,0
+"primary_p20_repeat_20261023",216,30456,0.2,"primary",TRUE,20261023
+"primary_p20_repeat_20261024",216,30456,0.2,"primary",TRUE,20261024
+"primary_p20_repeat_20261025",216,30456,0.2,"primary",TRUE,20261025
+"date_blocked_p20_repeat_20261022",216,30456,0.2,"date_blocked",TRUE,20261022
+"date_blocked_p20_repeat_20261023",216,30456,0.2,"date_blocked",TRUE,20261023

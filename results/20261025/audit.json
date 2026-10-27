@@ -1,0 +1,14 @@
+{
+  "registrations": 586,
+  "completed_registrations": 356,
+  "new_cases": 282,
+  "completed_new_posterior": 67,
+  "completed_new_prior": 12,
+  "unique_registration_keys": true,
+  "aggregate_values_recomputed": 2412,
+  "maximum_aggregate_discrepancy": 5.5067062021407764e-14,
+  "paired_comparisons_recomputed": 344,
+  "matched_saved_comparison_rows": 344,
+  "same_primary_validation_and_reserve_casts_across_four_selections": true,
+  "scope": "Archive snapshot only; no refits; no R/Stan rerun; older rows reviewed from aggregate summaries"
+}

@@ -1,0 +1,8 @@
+"dataset","casts","fraction_of_all_casts","observations","minimum_depth","maximum_depth"
+"primary_p10_d150",108,0.1,15228,10,150
+"primary_p20_d150",216,0.2,30455,10,150
+"primary_p50_d150",540,0.5,76139,10,150
+"primary_validation_d150",108,0.1,15226,10,150
+"primary_p10_d250",108,0.1,26028,10,250
+"date_blocked_p10_d150",108,0.1,15228,10,150
+"date_blocked_validation_d150",117,0.108333333333333,16497,10,150

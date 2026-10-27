@@ -1,0 +1,35 @@
+$case
+    case_id                                         label      block   equation
+124     124 s124_regional_k_original_z_p20_k7_rs15_other7 regional_k original_z
+    subset fraction   split         dataset_id selection selection_seed
+124    p20      0.2 primary primary_p20_frozen    frozen              0
+       prior      mode variance   family cast autocor depth_max k_depth k_mld
+124 custom_z posterior   region gaussian none    none       150       7     4
+    k_distance   k_profile chains cores threads cpus memory_gb iter warmup
+124          5 rs15_other7      4     4       4   16        64 3000   1000
+    samples adapt_delta treedepth seed refresh evaluation_role fit_days
+124    2000        0.97        14 1234     100         heldout        7
+    priority equation_reference_case settings_reference_case
+124       10                     124                      19
+
+$job_id
+[1] "54250964"
+
+$allocated_cpus
+[1] 16
+
+$hostname
+[1] "cn512-05-r"
+
+$data_md5
+[1] "7eecee4e555d571da82759ef7f2d5ad6"
+
+$source_md5
+[1] "80c285d7215ecee12075b2ad40cd321a"
+
+$formula
+[1] "chl_norm ~ 1 + Region + distance_z + s(depth, by = region_only_1, bs = \"cr\", k = 15) + s(depth, by = region_only_2, bs = \"cr\", k = 7) + s(depth, by = region_only_3, bs = \"cr\", k = 7) + s(depth, by = region_only_4, bs = \"cr\", k = 7) + s(depth, by = region_only_5, bs = \"cr\", k = 7) + s(depth, by = region_only_6, bs = \"cr\", k = 7) + s(depth, by = region_only_7, bs = \"cr\", k = 7) + s(depth, by = region_only_8, bs = \"cr\", k = 15) + (1 | Ocean:Region:date) + (1 | Ocean:Region:enso)  sigma ~ 0 + Region"
+
+$cmdstan_version
+[1] "2.37.0"
+

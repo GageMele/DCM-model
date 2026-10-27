@@ -1,0 +1,7 @@
+"subset","prior","observations","casts","stan_fixed_effect_columns","stan_penalized_spline_columns"
+"p10","custom",15228,108,9,104
+"p10","default",15228,108,9,104
+"p20","custom",30455,216,9,104
+"p20","default",30455,216,9,104
+"p50","custom",76139,540,9,104
+"p50","default",76139,540,9,104

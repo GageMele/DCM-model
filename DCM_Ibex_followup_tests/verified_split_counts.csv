@@ -1,0 +1,10 @@
+"dataset","casts","fraction_of_all_casts","observations"
+"primary_p10_d150",108,0.1,15228
+"primary_p10_alt_d150",108,0.1,15227
+"primary_p20_d150",216,0.2,30455
+"primary_p50_d150",540,0.5,76139
+"primary_validation_d150",108,0.1,15226
+"date_blocked_p10_d150",108,0.1,15228
+"date_blocked_validation_d150",117,0.108333333333333,16497
+"primary_reserve_d150",108,0.1,14986
+"date_blocked_reserve_d150",108,0.1,14986

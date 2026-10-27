@@ -1,0 +1,13 @@
+case_id	label	subset	prior	mode	chains	iter	warmup	adapt_delta	treedepth	threads	cpus	k_depth	equation	cores	refresh	variant	memory_gb
+1	p10_custom_baseline	p10	custom	posterior	4	5000	1000	0.97	14	2	8	15	original_region_depth	4	50	baseline	32
+2	p10_default_baseline	p10	default	posterior	4	5000	1000	0.97	14	2	8	15	original_region_depth	4	50	baseline	32
+3	p20_custom_baseline	p20	custom	posterior	4	5000	1000	0.97	14	2	8	15	original_region_depth	4	50	baseline	32
+4	p20_default_baseline	p20	default	posterior	4	5000	1000	0.97	14	2	8	15	original_region_depth	4	50	baseline	32
+5	p50_custom_baseline	p50	custom	posterior	4	5000	1000	0.97	14	2	8	15	original_region_depth	4	50	baseline	64
+6	p50_default_baseline	p50	default	posterior	4	5000	1000	0.97	14	2	8	15	original_region_depth	4	50	baseline	64
+7	p10_custom_tree12	p10	custom	posterior	4	5000	1000	0.97	12	2	8	15	original_region_depth	4	50	tree12	32
+8	p10_default_tree12	p10	default	posterior	4	5000	1000	0.97	12	2	8	15	original_region_depth	4	50	tree12	32
+9	p10_custom_delta99	p10	custom	posterior	4	5000	1000	0.99	14	2	8	15	original_region_depth	4	50	delta99	32
+10	p10_default_delta99	p10	default	posterior	4	5000	1000	0.99	14	2	8	15	original_region_depth	4	50	delta99	32
+11	p10_custom_warmup2500	p10	custom	posterior	4	6500	2500	0.97	14	2	8	15	original_region_depth	4	50	warmup2500	32
+12	p10_default_warmup2500	p10	default	posterior	4	6500	2500	0.97	14	2	8	15	original_region_depth	4	50	warmup2500	32

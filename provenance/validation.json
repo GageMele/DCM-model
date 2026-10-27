@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "checked_local_links": 79,
+  "source_files_verified": 1292,
+  "registered_rows": 586,
+  "frozen_campaign_cases": 581,
+  "current_shape_cases": 282,
+  "completed_shape_posterior": 67,
+  "completed_shape_prior": 12,
+  "errors": [],
+  "scope": "Offline documentation, source integrity, configuration/count checks only; no new R/Stan/HPC execution or full statistical re-audit."
+}

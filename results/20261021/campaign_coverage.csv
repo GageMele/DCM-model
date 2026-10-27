@@ -1,0 +1,11 @@
+﻿campaign,registered,complete_posterior_evaluations,complete_prior,incomplete,evaluation_only_reuse,convergence_pass,zero_tree_and_convergence,validation_scored,reserve_scored
+baseline150,12,12,0,0,0,10,8,12,0
+equation150,18,18,0,0,0,3,2,18,0
+extensive150,102,96,6,0,0,63,60,96,0
+fast150,24,0,2,22,0,0,0,0,0
+followup150,34,30,4,0,0,16,15,30,30
+k150,12,12,0,0,0,0,0,11,0
+onset150,34,30,4,0,6,16,16,30,30
+pilot,1,0,0,1,0,0,0,0,0
+targeted150,63,57,6,0,0,33,7,57,0
+threading,4,0,0,4,0,0,0,0,0

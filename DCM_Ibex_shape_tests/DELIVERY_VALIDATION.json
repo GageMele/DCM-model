@@ -1,0 +1,10 @@
+{
+  "installer_bytes": 72555,
+  "package_members": 24,
+  "cases": 282,
+  "full_data_cases": 11,
+  "zip_and_file_hashes_valid": true,
+  "python_sources_parse": true,
+  "installer_first_and_repeat_execution": "PASS in an isolated temporary workspace",
+  "R_and_Stan_validation": "Scheduled on Ibex before fitting; not executed locally"
+}

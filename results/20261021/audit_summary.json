@@ -1,0 +1,15 @@
+{
+  "registered": 304,
+  "complete_registrations": 277,
+  "complete_posterior_evaluations": 255,
+  "distinct_completed_posterior_fits": 249,
+  "complete_prior_fits": 22,
+  "incomplete": 27,
+  "reused_control_evaluations": 6,
+  "rmse_audits": 1136,
+  "maximum_rmse_discrepancy": 7.815970093361102e-14,
+  "onset_score_audits": 360,
+  "distinct_posterior_fits_convergence_pass": 137,
+  "distinct_posterior_fits_zero_tree_pass": 104,
+  "snapshot_archive_sha256": "aa21a660aaa005ec74fd259e5459c8c0fae464210eba20195e4f699780204643"
+}

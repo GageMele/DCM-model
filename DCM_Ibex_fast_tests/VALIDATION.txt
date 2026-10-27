@@ -1,0 +1,26 @@
+Validation on 2026-10-14
+
+Passed:
+- All R scripts parse successfully.
+- 24 unique cases: 22 posterior fits and 2 proper-prior predictive fits.
+- CPU requests match parallel chains times max(1, threads); peak fit request is 58 CPUs.
+- Actual full bundle: 258984 observations, 1080 casts, depths 10-250 m.
+- Actual full bundle restricted at 150 m: 151962 observations, 1080 casts.
+- Nested actual subsets: 54/108/216 casts; 7614/15228/30455 observations.
+- Every eligible observation in each selected cast was preserved unchanged.
+- No smoothing or binning; no depths outside 10-150 m.
+- Sufficient regional support for k=(15,5,5) in all subsets.
+- mgcv constructed all eight regional tensor bases on the actual 5% subset:
+  374 columns per region, null-space dimension 7, seven penalty blocks.
+- Seeded support selection, constrained proportional allocation, and cast-balanced weighting.
+- Sampler CSV reader correctly separates saved warmup and sampling, excluding parameter columns.
+- Original formula/prior assignments were located unambiguously in the current model source.
+- Collector retains partial diagnostics and missing/failed cases without fabricating successful fits.
+
+Not executed locally:
+- brms/CmdStan compilation and fitting (brms is installed on Ibex, not in the local R library).
+- Slurm submission or running-job time extensions.
+- Linux shell syntax checks (included as an Ibex preflight before submission).
+
+Runtime numbers in unit-test fixtures were synthetic and are not model benchmarks.
+No synthetic benchmark timings or results are included in this package.

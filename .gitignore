@@ -1,0 +1,20 @@
+# Local execution artifacts; archived compact evidence is committed explicitly.
+__pycache__/
+*.pyc
+.Rhistory
+.RData
+*.rds
+*.RData
+.Rproj.user/
+stan_csv/
+data/raw/
+data/processed/
+software/
+*.exe
+*.o
+*.so
+*.dll
+*.tar.gz
+*.zip
+.env
+.env.*

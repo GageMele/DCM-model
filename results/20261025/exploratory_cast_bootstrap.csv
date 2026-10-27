@@ -1,0 +1,11 @@
+case_id,reference_case,dataset,delta_rmse,cast_bootstrap_q025,cast_bootstrap_q975,note
+7,1,validation,-0.027335395375956084,-0.0729461949448072,0.015419837314659696,Paired cast bootstrap; shared dates and model selection not accounted for
+7,1,reserve,-0.062499529022779665,-0.11921983605258163,0.009129059635656401,Paired cast bootstrap; shared dates and model selection not accounted for
+8,1,validation,-0.04863069754816607,-0.10643432518144022,-0.00037278196000153615,Paired cast bootstrap; shared dates and model selection not accounted for
+8,1,reserve,-0.0809690940399479,-0.1459056560851307,-0.017397633316709026,Paired cast bootstrap; shared dates and model selection not accounted for
+25,19,validation,-0.05142620330942438,-0.12270178716976983,0.02508669219317482,Paired cast bootstrap; shared dates and model selection not accounted for
+25,19,reserve,-0.09095012505676525,-0.18286219977714568,-0.010847570656258533,Paired cast bootstrap; shared dates and model selection not accounted for
+34,19,validation,-0.1313906800409157,-0.3400969528043402,0.07692211651320673,Paired cast bootstrap; shared dates and model selection not accounted for
+34,19,reserve,-0.18000725296823417,-0.4574643999683814,0.12763384912584072,Paired cast bootstrap; shared dates and model selection not accounted for
+129,34,validation,-0.008161562650250254,-0.03971455975426066,0.01537917880424012,Paired cast bootstrap; shared dates and model selection not accounted for
+129,34,reserve,-0.052447406296334265,-0.14779225023070308,-0.0006932944685876736,Paired cast bootstrap; shared dates and model selection not accounted for
