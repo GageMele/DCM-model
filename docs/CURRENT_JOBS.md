@@ -1,6 +1,37 @@
-# Ibex jobs: verified snapshot and current-status boundary
+# Ibex jobs: latest capture and historical inventory
 
-**Live queue status on 27 October 2026 could not be obtained.** The fresh SSH attempt from this workspace failed with “connect to host ... port 22: Permission denied.” This is a connection failure, not a Slurm result. The repository cannot claim which jobs are running now.
+## Latest reported capture: 27 October 2026
+
+The user successfully ran the read-only queue capture on Ibex. The reported query ended at **2026-10-27 10:47:40 UTC / 13:47:40 Saudi time (UTC+3)**.
+
+| Reported measure | Count |
+|---|---:|
+| RUNNING jobs | 20 |
+| All captured queue entries | 335 |
+| Entries in other states, by subtraction | 315 |
+
+Scope: all visible queue states for user **meleg**, with array tasks expanded. This covers the user's entire account queue, potentially including other projects, controllers, fits, and checks. It does not establish that all 20 running jobs are DCM model fits. The 315 other entries cannot all be called pending without the state-level data.
+
+The [reported metadata](../operations/jobs/20261027T104740Z/reported_capture_metadata.json) is transcribed from the successful terminal output. **The archive and per-job CSVs have not yet been received.** Job IDs, names, states, resource allocations, and DCM-specific counts remain to be checked from that archive. This report does not supersede the October 25 scientific results or establish which models completed since then.
+
+The capture created:
+
+```text
+/ibex/user/meleg/DCM_MODEL/logs/ibex_jobs_20261027T104740Z_1793098060392524450
+/ibex/user/meleg/DCM_MODEL/logs/ibex_jobs_20261027T104740Z_1793098060392524450.tar.gz
+```
+
+### Download the existing capture
+
+Open a **local Windows PowerShell window** and run:
+
+```powershell
+scp meleg@ilogin.ibex.kaust.edu.sa:/ibex/user/meleg/DCM_MODEL/logs/ibex_jobs_20261027T104740Z_1793098060392524450.tar.gz "$env:USERPROFILE\Downloads\"
+```
+
+Upload that downloaded archive to add the full job inventory. There is no need to repeat the successful capture simply to transfer it. The archive contains all_queued_jobs.csv, running_jobs.csv, dcm_manifest_matches.csv, raw squeue output, metadata, and a readable summary.
+
+Direct SSH from the authoring workspace was blocked earlier. The later successful user-run capture establishes these aggregate counts, but the older 48-row table below remains a separate historical snapshot.
 
 ## Last verified shape dispatcher snapshot
 

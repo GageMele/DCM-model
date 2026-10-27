@@ -49,7 +49,7 @@ BLAS/OpenMP helper environment variables OMP_NUM_THREADS, OPENBLAS_NUM_THREADS, 
 
 ## Job inventory and read-only monitoring
 
-See [CURRENT_JOBS.md](CURRENT_JOBS.md) for the dated archived job list and live capture instructions. The fresh SSH connection was blocked during publication, so archived classifications do not establish current Slurm RUNNING states.
+See [CURRENT_JOBS.md](CURRENT_JOBS.md) for the successful user-reported October 27 capture: 20 RUNNING jobs and 335 total entries at 10:47 UTC / 13:47 Saudi time, across the entire meleg account. The archive with individual jobs is awaiting transfer. Direct SSH from the authoring workspace was blocked earlier; the October 25 archived classifications remain historical.
 
 ~~~bash
 cd /ibex/user/meleg/DCM_MODEL

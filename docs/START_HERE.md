@@ -26,13 +26,13 @@ The latest verified experiment is:
 
 `/ibex/user/meleg/DCM_MODEL/experiments/shape150_20261022T102851Z_3426481`
 
-Preparation job 54250664 completed. Initial dispatcher job 54250665 started. At the archived dispatcher time **2026-10-25 T 11:14:41 Z**, 79 cases were complete, 48 fitting, and 155 not submitted. Requested CPUs for active model stages were 768. These are historical observations, not live queue claims.
+Preparation job 54250664 completed. Initial dispatcher job 54250665 started. At the archived dispatcher time **2026-10-25T11:14:41Z**, 79 cases were complete, 48 fitting, and 155 not submitted. Requested CPUs for active model stages were 768. These are historical observations, not live queue claims.
 
 The 79 completed cases comprise 67 posterior and 12 prior-only fits. All new 40%, 50%, 75%, and 100% training cases were still incomplete. The best-supported next action is to collect those existing results before designing another large campaign.
 
 Regional MLD-varying models, especially shape cases 34, 129, and prior sensitivity 249, are promising. Retain no-MLD, half-shift and full-shift controls. Region-specific tensors and unseen-date results remain important unanswered comparisons.
 
-See [CURRENT_JOBS.md](CURRENT_JOBS.md) for every archived active candidate and instructions for obtaining the live queue.
+The user’s successful queue capture on **27 October 2026 at 10:47 UTC / 13:47 Saudi time** reports **20 running jobs among 335 queue entries** for the entire `meleg` account. The per-job archive is awaiting transfer, so DCM-specific counts and current job identities are not yet verified. See [CURRENT_JOBS.md](CURRENT_JOBS.md) for the reported metadata, download instructions, and the separate October 25 archived candidates.
 
 ## First working session
 
