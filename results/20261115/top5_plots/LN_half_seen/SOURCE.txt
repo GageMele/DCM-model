@@ -1,0 +1,2 @@
+n001_lognormal_likelihood_half_primary_p20
+/ibex/user/meleg/DCM_MODEL/experiments/next150_20261028T114047Z_653459/runs/case_001

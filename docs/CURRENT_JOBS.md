@@ -1,5 +1,20 @@
 # Ibex jobs: verified capture and historical inventory
 
+## Status on 15 November 2026 (from `08_status_all.sh` output that Gage pasted)
+
+| Experiment | State |
+|---|---|
+| shape150 | 195 fits complete, 48 failed, 189 checks complete (0 failed); 269 of 282 run directories |
+| next150 | All 23 cases checked; controller finished |
+| round3 | 15 of 16 checked. **Case 11** (Gaussian pooled regional MLD, seen dates) is still fitting as job **55404452**, at 5.8 days of a 7-day limit |
+| bins1m | All 8 checked; controller 55406551 completed |
+| plots/top5 | Array 55624665 and combine job 55624666 finished in about 35 minutes |
+
+On 12 Nov, Gage decided to wait for the running tests to finish before queueing more. No fits were queued after 9 Nov. The account was at `QOSMaxCpuPerUserLimit` for most of this period; the pending jobs of other projects (V_, C_, S5*, D0B, D1B, V5_) are not DCM jobs. The day-by-day record is in the [run log](../operations/RUN_LOG_20261027_20261115.md).
+
+The 27 October capture below is kept as the last full queue snapshot.
+
+
 ## Latest verified capture: 27 October 2026
 
 The uploaded archive records the **entire visible queue for user meleg** at **2026-10-27 10:47:40 UTC / 13:47:40 Saudi time (UTC+3)**. The query ran from 10:47:38.260894 to 10:47:40.353886 UTC. This is a dated observation, not a continuously refreshed status page.

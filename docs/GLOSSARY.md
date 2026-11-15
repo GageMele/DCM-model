@@ -35,3 +35,12 @@
 | Manifest/ledger | Case/job registrations and accepted submission state |
 | Controller/dispatcher | Lightweight scheduler that submits fits/checks as capacity permits |
 | Frozen campaign | Copied code, cases, data selection and identities for a named experiment |
+| ratio | chl_norm + 1 = Chl / surface Chl; the lognormal response (floored at 0.01) |
+| Seen dates / primary split | Held-out casts whose dates also appear in training (conditional test) |
+| Unseen dates / date-blocked split | Held-out casts whose whole Ocean–Region–date groups are absent from training (generalisation test); seed 20261022 unless stated |
+| elpd (joint per date) | Sum over held-out date groups of the log predictive density of all rows in the group; higher is better |
+| PIT | Probability integral transform, P(replicate < observed); uniform when calibrated |
+| GI / GS / I | Pedersen et al. 2019 hierarchical GAM types: global + individual deviations / global + shared-penalty factor smooth / individual curves only |
+| Peak profile | Nonlinear model: exponential background plus a Gaussian peak whose depth, amplitude and width depend on Region and MLD |
+| Histogram / bin models | Depth treated as a factor (5 m or 1 m bins) with partially pooled bin effects rather than a smooth curve |
+| Boundary maximum | A cast whose maximum chl_norm sits at 10 m or 150 m |

@@ -1,0 +1,9 @@
+/ibex/user/meleg/DCM_MODEL/experiments/next150_20261028T114047Z_653459	1	LN_half_seen	LN half-shift
+/ibex/user/meleg/DCM_MODEL/experiments/next150_20261028T114047Z_653459	2	LN_half_unseen	LN half-shift
+/ibex/user/meleg/DCM_MODEL/experiments/next150_20261028T114047Z_653459	3	LN_sigdepth_seen	LN half + sigma by depth
+/ibex/user/meleg/DCM_MODEL/experiments/next150_20261028T114047Z_653459	4	LN_sigdepth_unseen	LN half + sigma by depth
+/ibex/user/meleg/DCM_MODEL/experiments/next150_20261028T114047Z_653459	11	LN_distvary_seen	LN half + distance by depth
+/ibex/user/meleg/DCM_MODEL/experiments/next150_20261028T114047Z_653459	12	LN_distvary_unseen	LN half + distance by depth
+/ibex/user/meleg/DCM_MODEL/experiments/next150_20261028T114047Z_653459	13	LN_peak_seen	LN peak profile
+/ibex/user/meleg/DCM_MODEL/experiments/bins1m_20261109T175123Z_3650341	7	LN_hist1m_seen	LN 1 m histogram
+/ibex/user/meleg/DCM_MODEL/experiments/bins1m_20261109T175123Z_3650341	8	LN_hist1m_unseen	LN 1 m histogram

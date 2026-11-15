@@ -20,7 +20,30 @@ The authoritative configuration hierarchy is:
 
 A planned case is not proof of an accepted Slurm submission. A completed fitting job is not proof of completed checking. A completed check is not proof of diagnostic validity. A low RMSE is not proof of good onset/uncertainty/generalization.
 
-## Where we left off
+## Where we left off (15 November 2026)
+
+Read [BEST_MODELS.md](BEST_MODELS.md) and [TRIED_AND_UNTRIED.md](TRIED_AND_UNTRIED.md) first. Then read the [15 November review](../results/20261115/README.md).
+
+Experiments on Ibex (`/ibex/user/meleg/DCM_MODEL/experiments/`, pointers in `logs/latest_<name>_experiment.txt`):
+
+| Experiment | Purpose | State on 15 Nov |
+|---|---|---|
+| `shape150_20261022T102851Z_3426481` | 282-case Gaussian shape grid | 195 fits complete, 48 failed, 189 checks complete; 269 of 282 run directories. Results after 27 Oct not yet collected |
+| `next150_20261028T114047Z_653459` | Lognormal, variance, pooling, peak profile, 5 m binning | All 23 cases checked |
+| `round3_20261109T161506Z_3488274` | Gaussian versions and 5 m histogram models | 15 of 16 checked; case 11 still fitting (job 55404452, 5.8 days) |
+| `bins1m_20261109T175123Z_3650341` | 1 m histogram models | All 8 checked |
+
+Plots of the top 5 setups are in `plots/top5_20261115T155349Z/`. Copies of the comparison figures are in [results/20261115/top5_plots](../results/20261115/top5_plots/).
+
+The best setup for unseen dates is the **lognormal half-shift** (next150 1/2). The best for seen dates is the **lognormal peak profile** (next150 13); its date-blocked fit did not converge. The most useful next tests are:
+- a date effect that varies with depth;
+- sigma tied to depth relative to MLD;
+- a converging date-blocked peak profile;
+- standard errors on the paired elpd differences.
+
+The shape150 controller died on 26 Oct during an Ibex Slurm outage. It was replaced on 27 Oct (`controller_002`, job 54668377), and the 141 never-submitted fits were briefly deferred, then re-enabled the same day. See [CAMPAIGN_HISTORY.md](CAMPAIGN_HISTORY.md) and the [run log](../operations/RUN_LOG_20261027_20261115.md).
+
+### Previous state (27 October 2026)
 
 The latest verified experiment is:
 
@@ -56,6 +79,9 @@ The verified queue archive from **27 October 2026 at 10:47 UTC / 13:47 Saudi tim
 - Full-data results are reconstruction. Former holdouts cease to be held out when included in training.
 - Prior-only simulations are plausibility checks, not posterior accuracy results.
 - Physical within-cast residual correlation and MCMC chain autocorrelation are different problems.
+- "Seen dates" (primary split) and "unseen dates" (date-blocked split) are different questions. The first asks whether the model can interpolate within a sampled cruise-day; the second asks whether it generalises to a new one. Choose structure on unseen dates.
+- Joint per-date elpd totals can be compared between models only within the same split. Lognormal and Gaussian elpd are comparable because `ratio = chl_norm + 1` is a pure shift (no Jacobian).
+- A 5 m binned fit's per-row lpd is not like-for-like with a raw-row fit: its sigma describes bin medians. Compare binned fits by RMSE, coverage and onset, or refit both on bins.
 
 ## What cannot yet be reproduced from GitHub alone
 

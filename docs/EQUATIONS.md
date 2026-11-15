@@ -182,6 +182,60 @@ The interaction_z control keeps its shared MLD, distance, and product bases at 5
 
 Cast effects change new-cast prediction. Do not judge them only by in-sample fit.
 
+## Campaigns after 27 October 2026: next150, round3, bins1m
+
+The constructors are in [DCM_Ibex_next150/models.R](../DCM_Ibex_next150/models.R), [DCM_Ibex_round3/models.R](../DCM_Ibex_round3/models.R) and [DCM_Ibex_bins1m/models.R](../DCM_Ibex_bins1m/models.R). Each campaign's copy is backward-compatible with the one before it, so the same case settings build the same formula. In everything below, `u = depth_mld_half = depth − 0.5·MLD`, `G = (1|Ocean:Region:date) + (1|Ocean:Region:enso)`, and `k = 7`.
+
+### Likelihood
+
+- **Lognormal:** `ratio ~ lognormal(mu, sigma)`, where `ratio = pmax(chl_norm + 1, 0.01)`. The mean structure works on log(ratio). The median ratio is `exp(mu)`, and `chl_norm = ratio − 1`.
+- **Gaussian:** `chl_norm ~ normal(mu, sigma)`, as in all earlier campaigns.
+
+### Mean structures (smooth models)
+
+| Equation label | Formula (right-hand side of mu) |
+|---|---|
+| `half` | `1 + Region + distance_z + s(u, by = Region, k = 7) + G` |
+| `half_GI` | `1 + Region + distance_z + s(u, by = Ocean, k = 7) + s(u, by = Region, k = 7, m = 1) + G` |
+| `half_mld_pooled` | `half` + `s(u, by = mld_z, k = 7)` + one `s(u, by = region_mld_i, k = 5, m = 1)` per region, where `region_mld_i = mld_z · 1[Region = i]` |
+| `half_dist_vary` | `1 + Region + s(u, by = Region, k = 7) + s(u, by = distance_z, k = 5) + G` |
+| `groups = date_only` | Replaces G with `(1|Ocean:Region:date)` |
+
+### Sigma
+
+- `variance = region`: `sigma ~ 0 + Region`.
+- `variance = region_depth`: `sigma ~ 0 + Region + s(depth, by = Ocean, k = 5)`, with `sds ~ normal(0, 0.5)`.
+- `variance = region_bin` (bin models): `sigma ~ 0 + Region + depth_bin`, as fixed effects. Group-level sigma terms are dropped by population predictions.
+
+### Peak profile (`peak_nl`, nonlinear)
+
+On `z = u/100` (`depth_hm`):
+
+    median ratio(z) = exp(lbg + slope·z) + exp(lamp) · exp(−0.5 · ((z − zm) / exp(lwid))²)
+
+The nonlinear parameters are:
+- `lbg ~ 0 + Region`;
+- `slope ~ 0 + Region`;
+- `lamp ~ 0 + Region + mld_z + distance_z + (1|g|Ocean:Region:date)`;
+- `zm ~ 0 + Region + mld_z + (1|g|Ocean:Region:date)`;
+- `lwid ~ 0 + Region + mld_z`.
+
+MLD enters peak depth (a shift), peak amplitude (erosion) and peak width separately. The Gaussian version (round3 15/16) models `chl_norm` as background + peak − 1.
+
+### Histogram (bin) models
+
+The bins are `depth_bin`, 28 levels of 5 m (round3), or `depth_m`, 141 levels of 1 m (bins1m).
+
+| Label | Response and family | Right-hand side |
+|---|---|---|
+| `bin_means` | `chl_norm`, Gaussian; lognormal `ratio` in bins1m 7/8 | `1 + Region + distance_z + mld_z + (1 + mld_z || bin) + (1 + mld_z || Region:bin) + G` |
+| `bin_class` | `enh_class`, cumulative logit; classes <+10%, +10–50%, +50–100%, +100–200%, ≥+200% | Same as `bin_means` |
+| `dcm_depth` | The class of the depth of each cast's maximum chl_norm, cumulative logit; 14 classes of 10 m, or 141 classes of 1 m | `1 + Region + distance_z + mld_z + (0 + mld_z | Region) + G` |
+
+The adjacent bins are partially pooled but not smoothed. `(1 + mld_z || bin)` is the bin analogue of `s(depth, by = MLD)`.
+
+The current best-model formulas, with priors, are written out in full in [BEST_MODELS.md](BEST_MODELS.md).
+
 ## Primary software references
 
 [brms smooths](https://paulbuerkner.com/brms/reference/s.html), [mgcv t2](https://stat.ethz.ch/R-manual/R-devel/library/mgcv/html/t2.html), [Stan diagnostics](https://mc-stan.org/learn-stan/diagnostics-warnings.html). Historical versions and frozen constructors take precedence over assuming current documentation implies identical old behavior.

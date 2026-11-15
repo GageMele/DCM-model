@@ -10,6 +10,14 @@
 | Original rstan DLL unavailable locally | Saved final fit could not load its old DLL | Read hydrated sample slots and temporary in-memory prediction adapter; no fit/data mutation |
 | SSH disconnect | client_loop connection reset | Reconnect and query Slurm; not evidence jobs died |
 | ZIP download difficulty | User could not retrieve an earlier deliverable | Repository preserves readable source; named large assets remain separately transferable |
+| shape150 controller died 26 Oct | `squeue --me` failed during an Ibex Slurm outage; the scheduler treats any failed Slurm query as fatal | New controller_002 (job 54668377) on 27 Oct. Making Slurm query failures retryable would prevent a repeat |
+| Account at `QOSMaxCpuPerUserLimit` | Many DCM fits plus other projects' jobs (V_, C_, S5*, D0B, D1B, V5_) | New fits wait for slots. The non-DCM jobs belong to other projects; leave them alone |
+| Population predictions dropped a group-level sigma | `(1 \| depth_bin)` in sigma is removed by `re_formula` | round3/bins1m use fixed `sigma ~ 0 + Region + depth_bin` |
+| ggplot `geom_errorbarh` and `if/else` precedence in plot code | Local tests of round3 plotting | Fixed before launch |
+| Lognormal ratio ≤ 0 | 10 / 4 rows with Chl ≤ 0 | Floored at ratio 0.01 for the likelihood only |
+| 48 shape150 fit failures (by 12 Nov) | `FIT_FAILED.txt` count from 08_status_all.sh | Not yet diagnosed |
+| next150 peak profile, date-blocked (case 14) | R-hat 1.68, 948 divergences, 53.9 h | Not converged; do not interpret. Gaussian peak (round3 15/16) also unconverged (R-hat 1.32 / 1.10) |
+| Boundary DCM maxima | 4 casts peak at 150 m, 2 at 10 m | Flag or exclude when interpreting DCM-depth models |
 
 The included targeted dependency patch is archived separately from the original targeted source. The onset repair contains original and patched checksum manifests: a mismatch against original_SHA256SUMS for a deliberately patched file is expected. The top-level repair SHA256SUMS identifies the delivered repair package.
 
@@ -20,7 +28,10 @@ The original shape package and embedded launcher predate the collector string-ID
 - Some fits have divergences despite otherwise good R-hat and ESS.
 - Tree limits and diagnostic-screen thresholds differ across campaigns.
 - Residual neighboring-depth correlation remains high.
-- Gaussian support permits chl_norm below −1.
+- Gaussian support permits chl_norm below −1. The lognormal models fix this.
+- Lognormal intervals are too narrow: 90% coverage is 0.80–0.86 overall and 0.63–0.78 below 60 m on unseen dates.
+- Strong DCM peaks are under-predicted by about half on new dates, because between-date amplitude variance is large.
+- Elpd differences do not yet have standard errors. Totals can be compared only within one split. Binned-fit lpd is not like-for-like with raw-row fits.
 - High-k and tensor results are incomplete or, for older 3D trials, invalid.
 - MLD shape improvements may concentrate in influential casts.
 - Conditional gains need confirmation for unseen dates.

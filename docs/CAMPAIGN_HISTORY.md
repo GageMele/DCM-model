@@ -71,6 +71,32 @@ Preparation 54250664 completed in 2m48s. Initial dispatcher 54250665 ran the sch
 
 The early all-campaign count 583 was caused by nonnumeric threading IDs being coerced to NA and collapsed in the registry. Correct string-preserving keys restore 586. This is a reporting repair, not three new fits.
 
+## Campaigns after 27 October 2026
+
+These campaigns reuse the frozen shape150 data, splits, scheduler and worker. They train on 20% of casts and test both the primary split (seen dates) and the date-blocked split, seed 20261022 (unseen dates). Each one has its own experiment directory, token and controller, so shape150's registry is untouched.
+
+| Campaign | Created | Cases | State on 15 Nov | Purpose |
+|---|---|---:|---|---|
+| [next150_20261028T114047Z_653459](../DCM_Ibex_next150/README.md) | 28 Oct | 23 (14 new fits, 7 rescored anchors, 2 binned) | 23 checked | Lognormal likelihood, sigma by depth, date-only groups, GI pooling, pooled regional MLD, distance by depth, peak profile, 5 m binning |
+| [round3_20261109T161506Z_3488274](../DCM_Ibex_round3/README.md) | 9 Nov | 16 | 15 checked; case 11 fitting | Gaussian versions of next150; 5 m bin-means, enhancement-class and DCM-depth "histogram" models |
+| [bins1m_20261109T175123Z_3650341](../DCM_Ibex_bins1m/README.md) | 9 Nov | 8 | 8 checked | Histogram models with 1 m bins; lognormal bin means |
+
+The design of next150 comes from the [literature-based test design](research/TEST_DESIGN_20261027.md) of 27 October (tests T1–T7 and T9). Round3 and bins1m were Gage's requests of 9 November. He asked for Gaussian versions of "the other models I've tried", and for models that treat depth "as individual bins, like a histogram rather than a density plot", first at 5 m and then at 1 m.
+
+On 15 Nov, posterior plots of the five best setups were made with [DCM_Ibex_plots_top5](../DCM_Ibex_plots_top5/README.md). This was read-only and no fits were changed.
+
+### shape150 operations after 25 October
+
+- **26 Oct, about 06:40 UTC:** controller 54250665 failed after 3-20:02. A `squeue --me` call failed during an Ibex Slurm outage ("Zero Bytes were transmitted"), and the scheduler treats any failed Slurm query as fatal. This was not a model or data failure. The `dispatcher.lock` is an fcntl lock, so the stale file is harmless.
+- **27 Oct, 13:11 UTC snapshot:** 94 cases checked, 28 fits done but unchecked, 19 fitting (all tensors plus case 111), and 141 never submitted. The 302 pending jobs on the account belong to other projects (V_*, C_*, VR_*).
+- **27 Oct, 14:12 UTC:** the 141 never-submitted fits were deferred with reversible `scheduler/fit_NNN.rejected.json` markers. A new controller, `controller_002` (job 54668377), was submitted to check the 28 finished fits. The deferred fits were 37–99 (40/50/75% and full data), 112–123 (intermediate k at 50%), 130–141 (regional k at 50/75%), 145–188 and 191–196 (tensors), and 222–232 (warps).
+- **27 Oct, 16:18 UTC:** the deferral markers were removed, so all 141 returned to the queue. At that point 28 checks had completed and 48 fits were active.
+- **15 Nov:** 195 fits complete, 48 fits failed, 189 checks complete with 0 failed, and 269 of 282 run directories exist. Results after 27 Oct have not been collected, and the 48 failures have not been diagnosed.
+
+The step-by-step record, including the commands and outputs Gage pasted back, is the [run log](../operations/RUN_LOG_20261027_20261115.md).
+
 ## What is next in the historical sequence
 
-Collect the existing shape campaign and resolve any check/scheduler failures before adding another broad grid. The current evidence cannot tell us which queued fits completed after October 25. Update this table from a new timestamped export, preserving the previous snapshot.
+*(25 October text, kept for history.)* Collect the existing shape campaign and resolve any check/scheduler failures before adding another broad grid. The current evidence cannot tell us which queued fits completed after October 25.
+
+As of 15 November, see [NEXT_STEPS.md](NEXT_STEPS.md) and [TRIED_AND_UNTRIED.md](TRIED_AND_UNTRIED.md). Update this table from a new timestamped export, preserving the previous snapshot.
