@@ -34,6 +34,35 @@ For 90% predictive intervals [L,U], interval score is:
 
 Lower is better. Always inspect interval width and empirical coverage together. Narrow intervals can look attractive while undercovering.
 
+## Log predictive density (from next150 onward)
+
+Every case from next150 onward also reports held-out log predictive density on the chl_norm scale:
+- **lpd per row:** the mean over rows of the log of the posterior-mean predictive density.
+- **Joint per-date elpd:** the log of the mean over draws of the product of densities over all rows of a held-out Ocean–Region–date group, summed over groups. Unseen date levels are drawn once per group (`sample_new_levels = "gaussian"`).
+
+The per-date values are saved in `checks/<dataset>_<mode>_date_elpd.csv`. That file is what is needed for paired differences with a bootstrap over dates. Lognormal cases model `ratio = chl_norm + 1`, a pure shift, so no Jacobian is needed, and Gaussian and lognormal totals are directly comparable. Compare totals only within one split, because the two splits use different held-out casts.
+
+## Posterior predictive checks and PIT (15 November 2026)
+
+[DCM_Ibex_plots_top5](../DCM_Ibex_plots_top5/README.md) adds four checks:
+- **PIT histograms:** P(replicate < observed), which should be uniform.
+- **Coverage by depth.**
+- **Density overlays** of observed vs replicated Chl/surface, by region and by depth band.
+- **Across-cast quantile profiles:** observed 10/50/90% vs predictive, per region and 5 m band.
+
+These separate two failures that one coverage number hides: under-coverage at depth on unseen dates, and a systematic sign of the misses (15% of rows below the 5th percentile, against 3.5% above the 95th).
+
+## Ordinal histogram models
+
+The `bin_class` and `dcm_depth` models (round3, bins1m) are scored on class probabilities:
+- lpd per row and jointly per date;
+- the ranked probability score (RPS);
+- Brier scores for each "at least class k";
+- modal accuracy and median class MAE;
+- calibration by Region × bin.
+
+`dcm_depth` also reports DCM depth MAE (m) and 80% coverage. These scores are not comparable with the continuous models.
+
 ## Profile-level outcomes
 
 Save peak depth and height, depth-integrated positive enhancement, conditional/population scores, regional summaries, and individual-cast errors.

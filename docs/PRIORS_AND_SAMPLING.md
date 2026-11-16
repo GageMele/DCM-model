@@ -86,6 +86,32 @@ Regional MLD at delta .95 (case 241) was clean at about 28.09 hours versus 33.23
 
 For half-shift, delta .99 (case 234) increased hits to 136 from two in the anchor without useful error improvement. Increasing controls is not uniformly beneficial.
 
+## Settings from next150 onward (28 October – 15 November 2026)
+
+New fits use 4 chains × (1,000 warmup + 2,000 retained), `adapt_delta = 0.95`, `max_treedepth = 14`, 4 threads per chain (16 CPUs) and 96 GB, or 32–64 GB for binned and histogram data. Priors:
+- Intercept `student_t(3, 0, 1)` for lognormal (log-ratio scale), or `student_t(3, 0.73, 5.448)` for Gaussian;
+- `b ~ normal(0, 2)`;
+- `sd` and `sds ~ student_t(3, 0, 1.5)`;
+- sigma coefficients `normal(0, 1)`;
+- sigma smooth `sds ~ normal(0, 0.5)`;
+- ordinal intercepts `student_t(3, 0, 2.5)`.
+
+The peak profile uses informative priors on its nonlinear parameters (see [BEST_MODELS.md](BEST_MODELS.md)) and `init = 0`.
+
+Fit times at 20% (216 casts):
+
+| Fit | Time |
+|---|---|
+| Lognormal half-shift | 12–17 h |
+| + sigma by depth | 15–19 h |
+| GI pooling | 58–60 h |
+| Pooled regional MLD | 78–124 h |
+| Peak profile, seen dates | 8.6 h |
+| Peak profile, date-blocked (failed) | 54 h |
+| Gaussian on 5 m bins | 0.8–0.9 h |
+| 1 m histogram | 5–24 h |
+| Ordinal DCM depth | Minutes |
+
 ## Resource and timing interpretation
 
 Shape fits request four chains × four threads = 16 CPUs through 50% data; four × eight = 32 CPUs at 75/100%. Memory is 64–256 GiB by case. Checks request 4 CPUs/64 GiB, controller 1 CPU/4 GiB, preparation 1 CPU/96 GiB.

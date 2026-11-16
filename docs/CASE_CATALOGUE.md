@@ -175,6 +175,20 @@ Every recovered case matrix is included. A case number is unique only within its
 - **k_mld**: `5`.
 - **k_distance**: `5`.
 
+## Campaigns after 27 October 2026
+
+The case tables for these campaigns are kept with their source, not in `all_cases.tsv`, which preserves the 581-row recovered matrix:
+- next150 (23 cases): [DCM_Ibex_next150/cases.tsv](../DCM_Ibex_next150/cases.tsv), described in [its README](../DCM_Ibex_next150/README.md).
+- round3 (16 cases): [DCM_Ibex_round3/cases.tsv](../DCM_Ibex_round3/cases.tsv), described in [its README](../DCM_Ibex_round3/README.md).
+- bins1m (8 cases): [DCM_Ibex_bins1m/cases.tsv](../DCM_Ibex_bins1m/cases.tsv), described in [its README](../DCM_Ibex_bins1m/README.md).
+
+The new columns are:
+- `family`: gaussian or lognormal.
+- `variance`: region, region_depth or region_bin.
+- `groups`: date_enso or date_only.
+- `binning`: none or 5 m bins (next150 22–23).
+- `equation`: the new labels are half, half_GI, half_mld_pooled, half_dist_vary, peak_nl, bin_means, bin_class and dcm_depth. See [EQUATIONS.md](EQUATIONS.md).
+
 ## Field meanings
 
 | Field | Meaning |

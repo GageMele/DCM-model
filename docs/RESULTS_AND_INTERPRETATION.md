@@ -1,8 +1,52 @@
 # What we have learned
 
-**Evidence cutoff: 25 October 2026.** These findings synthesize the supplied comparison archives and the original saved-model review. They are not a live query of Ibex. The full compact review, all 586 registrations, all 282 new cases, all 67 completed posterior rows, planned comparisons, analysis script, and figures are included in [results/20261025](../results/20261025/README.md). The original external source archive is needed to rerun its complete cast-level audit.
+**Latest evidence: 15 November 2026.** The section below summarises the next150, round3 and bins1m campaigns and the posterior plots. Everything from "Overall interpretation" onward is the **25 October 2026** synthesis, kept unchanged as history. Where the two disagree, the newer section supersedes it. The main disagreement is that regional MLD-varying effects are no longer the leading candidate, because they do not generalise to unseen dates.
 
-## Overall interpretation
+## Update, 27 October – 15 November 2026
+
+Full numbers are in [results/20261109](../results/20261109/README.md) and [results/20261115](../results/20261115/README.md). The current recommendations are in [BEST_MODELS.md](BEST_MODELS.md).
+
+**What the late October shape150 results added.** These were collected 27 Oct and are recorded in the [run log](../operations/RUN_LOG_20261027_20261115.md).
+- **Regional tensors** cost 72–81 h at 20% and were mostly worse. Case 151 scored 1.604/2.608; cases 154 and 219 did not converge.
+- **Regional MLD at 10%** (cases 16–18) did worse than no-MLD on validation (1.55 vs 1.43) and better on reserve (2.90 vs 3.04).
+- **More draws** (case 244) gave results identical to case 34.
+- **Unseen dates:** regional MLD was worse than or equal to no-MLD in both date-blocked seeds (270 vs 265, 279 vs 274). The half-shift beat no-MLD in all 8 date-blocked comparisons.
+
+**Likelihood.** A lognormal likelihood on `ratio = chl_norm + 1` is the largest improvement found in the project. For the same half-shift equation, joint per-date elpd is −11,554 vs −17,134 on seen dates and −14,573 vs −19,107 on unseen dates. RMSE and onset error also fall, and no predictive draw is below chl_norm = −1. The lognormal 90% intervals cover only 0.80–0.86 of held-out rows. Every Gaussian refit in round3 trails its lognormal counterpart.
+
+**Structure.** On unseen dates, nothing beats the plain lognormal half-shift:
+
+| Change (on top of the LN half-shift) | Seen Δelpd | Unseen Δelpd | Cost |
+|---|---|---|---|
+| Sigma by depth (by Ocean, k = 5) | +573 | −524 | Similar |
+| + distance varying with depth | +731 | −279 | Similar |
+| GI pooled shape (+ sigma by depth) | +641 | −534 | 3–4× |
+| Pooled regional MLD (+ sigma by depth) | +444 | −4,391 | 6–8× |
+| Nonlinear Gaussian-peak profile | **+2,553** | not converged | Cheaper on seen dates |
+
+For a Gaussian likelihood, sigma by depth is large (+3,584 seen, +2,142 unseen). Dropping ENSO changes elpd little but worsens unseen-date onset error from 11.2 to 18.7 m.
+
+**Binning.** Fitting on 5 m bin medians gives the same RMSE and onset accuracy at about 35× less time (0.8–0.9 h vs 27–29 h). Treating depth as independent 5 m or 1 m bins ("histogram" models) does not beat the smooths on unseen dates. The lognormal 1 m bin means have the lowest RMSE (1.401) and seen elpd −10,466, but unseen elpd −18,181. Ordinal DCM-depth models place the DCM within about 11–16 m.
+
+**How MLD acts on the DCM (peak-profile posterior, seen dates).**
+- Beyond the half-shift there is no further displacement: about 0.5 m per SD of MLD, with an interval spanning zero.
+- Deeper MLD lowers peak amplitude by about 7.5% per SD and narrows the peak by about 3% per SD.
+- Peak amplitude varies about ×2 between dates, and peak depth about ±28 m.
+
+This supports the half-shift as a depth anchor. It adds a modest erosion effect and a small sharpening effect.
+
+**What the posterior plots show.**
+- The lognormal smooths reproduce DCM depth and shape in all regions.
+- Strong peaks are under-predicted by about half on new dates.
+- On unseen dates, 90% coverage falls to 0.63–0.78 below 60 m, and 15% of rows fall below the 5th percentile, so the models over-predict at depth.
+- No model reproduces the spike at ratio = 1 (mixed-layer rows) or the low tail at 3–30% of surface seen on unseen dates.
+- Equatorial unseen dates are the worst case: deep values near chl_norm = −0.9.
+
+**What it means.** The project's earlier conclusion that region-specific MLD deformation is the strongest candidate was based on seen-date RMSE. It does not survive the unseen-date test. The evidence now favours a lognormal likelihood, the half-shift coordinate, and more honest between-date uncertainty at depth. The literature review ([research/TEST_DESIGN_20261027.md](research/TEST_DESIGN_20261027.md)) predicted this pattern: region-specific terms win conditional tests and lose on new clusters.
+
+## Overall interpretation (25 October 2026 synthesis)
+
+**Evidence cutoff: 25 October 2026.** These findings synthesize the supplied comparison archives and the original saved-model review. They are not a live query of Ibex. The full compact review, all 586 registrations, all 282 new cases, all 67 completed posterior rows, planned comparisons, analysis script, and figures are included in [results/20261025](../results/20261025/README.md). The original external source archive is needed to rerun its complete cast-level audit.
 
 Region-specific vertical structure is essential. MLD can help, but how it enters matters. The latest completed results favor region-specific depth-dependent MLD effects for overall conditional prediction error. Half-shift remains useful for onset. Shared linear MLD effects offer smaller and less consistent improvements. A single universally imposed sharpening warp has not worked reliably.
 

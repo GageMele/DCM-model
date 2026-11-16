@@ -64,7 +64,10 @@ Because the baseline uses a surface median, individual observations at 10 m are 
 
 The prepared 250 m source contains 258,984 observations from 1,080 casts after quality/depth filtering. Current shape fitting restricts that eligible source to 10–150 m, giving 151,962 observations. These counts differ from the original saved fit's 255,369 rows; that older fit is not the identical prepared dataset.
 
-## No fitting-data smoothing or binning
+## No fitting-data smoothing or binning (until 28 October 2026)
+
+**Update, 28 October 2026.** With Gage's approval ("Add one binned test pair"), next150 cases 22–23 tested fitting on each cast's **median chl_norm in 5 m bins**: 28 bins from 10–15 to 145–150 m, placed at the bin centre. That gives 6,048 rows instead of about 30,455. It was about 35× faster with equal RMSE and onset accuracy. Round3 bin models use the same reduction. Held-out casts are **always scored on the raw 1 m rows**. The lognormal models use `ratio = pmax(chl_norm + 1, 0.01)`, which floors 10 of 30,455 primary rows and 4 of 30,456 date-blocked rows. Scores use the unmodified chl_norm. Raw-row fitting remains the reference.
+
 
 The user explicitly required unsmoothed, unbinned inputs in October 2026. Original values/depths are retained. The surface median is a normalization baseline, not profile smoothing. Five-metre median operations used later for onset/sharpness **scoring** do not replace model-fitting observations.
 

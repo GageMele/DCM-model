@@ -26,6 +26,37 @@ The logs/latest_shape150_experiment.txt pointer should resolve to the intended c
 
 A frozen experiment carries cases.tsv, copied source, configuration, prepared data/memberships, Slurm ledger/manifest, run directories, logs, result tables, and completion/failure markers. Shape uses three-digit run names (case_034); older campaigns often use two digits. Inspect the actual manifest.
 
+### Experiments after 27 October 2026
+
+| Experiment | Pointer | Token | Installer (in this repo) |
+|---|---|---|---|
+| `experiments/next150_20261028T114047Z_653459` | `logs/latest_next150_experiment.txt` | f6c43cea00 | [04_create_next150.sh](../DCM_Ibex_next150/04_create_next150.sh), then [05_add_binned_pair.sh](../DCM_Ibex_next150/05_add_binned_pair.sh) |
+| `experiments/round3_20261109T161506Z_3488274` | `logs/latest_round3_experiment.txt` | 4cb3655563 | [06_create_round3.sh](../DCM_Ibex_round3/06_create_round3.sh) |
+| `experiments/bins1m_20261109T175123Z_3650341` | `logs/latest_bins1m_experiment.txt` | dbfdd2cd23 | [07_create_bins1m.sh](../DCM_Ibex_bins1m/07_create_bins1m.sh) |
+| `plots/top5_20261115T155349Z` | `logs/latest_plots_top5.txt` | – | [09_plot_top5.sh](../DCM_Ibex_plots_top5/09_plot_top5.sh) (read-only) |
+
+Each experiment copies the shape150 scheduler and worker, and reuses its frozen prepared data and splits. Each one has its own controller, so a new campaign never touches shape150's registry. **Do not rerun installers 04–07**: each one creates a new experiment directory and queues all of its fits again. To check on everything at once, use [08_status_all.sh](../operations/scripts/08_status_all.sh). The other read-only diagnostics are in [operations/scripts](../operations/scripts/README.md).
+
+### How scripts reach Ibex
+
+New scripts are written in full, saved to Windows Downloads, and copied up from PowerShell:
+
+~~~powershell
+scp $HOME\Downloads\<script>.sh meleg@ilogin.ibex.kaust.edu.sa:/ibex/user/meleg/DCM_MODEL/
+~~~
+
+Then run on Ibex, keeping a log:
+
+~~~bash
+cd /ibex/user/meleg/DCM_MODEL && bash <script>.sh 2>&1 | tee logs/<script>_$(date -u +%Y%m%dT%H%M%SZ).txt
+~~~
+
+Installers back up any file they replace, and run `preflight.R` on every case (formula, priors, data, a tiny compile) before they submit anything. To get outputs back, tar them on Ibex and `scp` them down:
+
+~~~powershell
+scp meleg@ilogin.ibex.kaust.edu.sa:/ibex/user/meleg/DCM_MODEL/<file>.tar.gz $HOME\Downloads\
+~~~
+
 ## Environment
 
 Recorded cluster stack:
